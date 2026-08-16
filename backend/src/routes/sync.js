@@ -1,6 +1,6 @@
 const express = require('express');
 const { authMiddleware } = require('../middleware/auth');
-const { getSyncStatus, syncOfflineQueueToSupabase } = require('../db/supabase');
+const { getSyncStatus, twoWaySync, pushLocalToCloud, pullCloudToLocal } = require('../db/supabase');
 const { queueChange, db } = require('../db/sqlite');
 
 const router = express.Router();
@@ -10,13 +10,33 @@ router.get('/status', (req, res) => {
   res.json(getSyncStatus());
 });
 
-// POST /api/sync/trigger — Trigger sync from SQLite to Supabase
-router.post('/trigger', authMiddleware, async (req, res) => {
+// POST /api/sync/two-way — Complete 2-Way Sync (Cloud ⇄ Local SQLite3)
+router.post('/two-way', authMiddleware, async (req, res) => {
   try {
-    const result = await syncOfflineQueueToSupabase();
+    const result = await twoWaySync();
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: 'Sync failed', detail: err.message });
+    res.status(500).json({ error: '2-Way Sync failed', detail: err.message });
+  }
+});
+
+// POST /api/sync/trigger — Trigger upload push from SQLite to Supabase
+router.post('/trigger', authMiddleware, async (req, res) => {
+  try {
+    const result = await pushLocalToCloud();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Push sync failed', detail: err.message });
+  }
+});
+
+// POST /api/sync/pull — Trigger download pull from Supabase to SQLite
+router.post('/pull', authMiddleware, async (req, res) => {
+  try {
+    const result = await pullCloudToLocal();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Pull sync failed', detail: err.message });
   }
 });
 

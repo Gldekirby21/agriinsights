@@ -90,6 +90,13 @@ export const getFarm = (id) => apiFetch(`/api/farmers/farms/${id}`);
 export const getSensors = (farmId) =>
   apiFetch(`/api/farmers/sensors${farmId ? `?farm_id=${farmId}` : ''}`);
 
+// ─── Sync & Hybrid Database (Supabase + SQLite3) ──────────────────────────────
+export const getSyncStatus = () => apiFetch('/api/sync/status');
+export const triggerTwoWaySync = () =>
+  apiFetch('/api/sync/two-way', { method: 'POST' });
+export const queueSampleReading = () =>
+  apiFetch('/api/sync/queue-sample', { method: 'POST' });
+
 // ─── Feedback / SUS ───────────────────────────────────────────────────────────
 export const getSUSQuestions = () => apiFetch('/api/feedback/questions');
 export const submitFeedback = (data) =>

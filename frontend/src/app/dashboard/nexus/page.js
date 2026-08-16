@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { getNexusData, getNexusLogs, triggerNexusSync, getNexusTelemetry } from '@/lib/api';
+import { getNexusData, getNexusLogs, triggerNexusSync, getNexusTelemetry, getSyncStatus, triggerTwoWaySync } from '@/lib/api';
 
 const STATUS_COLOR = { connected: 'var(--success)', partial: 'var(--warning)', offline: 'var(--danger)' };
 const LOG_COLOR    = { success: 'var(--success)', warning: 'var(--warning)', anomaly: 'var(--danger)', error: 'var(--danger)' };
@@ -16,13 +16,83 @@ function TimeAgo(isoStr) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+// ─── REUSABLE 2-WAY SYNC WIDGET (SUPABASE CLOUD ⇄ LOCAL SQLITE3) ──────────────
+function TwoWaySyncBanner() {
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState(null);
+
+  useEffect(() => {
+    getSyncStatus().then(setSyncStatus).catch(() => {});
+  }, []);
+
+  async function handleSyncNow() {
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await triggerTwoWaySync();
+      setSyncMsg(res.message);
+      const updated = await getSyncStatus();
+      setSyncStatus(updated);
+    } catch (err) {
+      setSyncMsg('Sync notice: Operating in local SQLite3 cache mode.');
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  return (
+    <div className="card mb-lg" style={{ background: 'linear-gradient(135deg, rgba(18,32,25,0.95), rgba(59,130,246,0.12))', border: '1px solid rgba(59,130,246,0.35)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(59,130,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+            🔄
+          </div>
+          <div>
+            <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
+              Two-Way Database Sync Engine (Cloud ⇄ Offline SQLite3)
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+              ☁️ <strong>Supabase Cloud</strong> &nbsp;⇄&nbsp; 💾 <strong>Local SQLite3 WAL Database</strong> ({syncStatus?.pending_sync_queue || 0} pending queue)
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSyncNow}
+          disabled={syncing}
+          className="btn btn-primary btn-sm"
+          style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', display: 'flex', alignItems: 'center', gap: 8 }}
+        >
+          {syncing ? (
+            <>
+              <div className="loading-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+              <span>Synchronizing Cloud & Local...</span>
+            </>
+          ) : (
+            <>
+              <span>⚡ Sync Cloud & SQLite3 Now</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {syncMsg && (
+        <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 'var(--radius-md)', fontSize: 12.5, color: 'var(--success)' }}>
+          ✓ {syncMsg}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── 1. FARMER VIEW: Simple & Actionable Connection Status ───────────────────
 function FarmerNexus({ data, user }) {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   function handlePlayAudio() {
     if ('speechSynthesis' in window) {
-      const text = `Kumusta ${user?.name || 'Kasama'}. Lahat ng 3 sensors sa Dela Cruz Cornfield ay online at maayos ang signal. Ang pinakabagong lagay ng panahon mula sa PAGASA at presyo sa merkado ay updated na.`;
+      const text = `Kumusta ${user?.name || 'Kasama'}. Lahat ng 3 sensors sa Dela Cruz Cornfield ay online at maayos ang signal. Ang pinakabagong lagay ng panahon mula sa PAGASA at presyo sa merkado ay updated na sa iyong SQLite at Cloud database.`;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'tl-PH';
       utterance.onend = () => setIsPlayingAudio(false);
@@ -52,6 +122,9 @@ function FarmerNexus({ data, user }) {
         </div>
       </div>
 
+      {/* Two-Way Database Sync Control */}
+      <TwoWaySyncBanner />
+
       {/* High Level Plain Status */}
       <div className="card mb-lg" style={{ background: 'linear-gradient(135deg, rgba(18,32,25,0.9), rgba(82,183,136,0.1))', border: '1px solid var(--border-accent)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -63,7 +136,7 @@ function FarmerNexus({ data, user }) {
               Lahat ng Sensors at Weather Stations ay Online!
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
-              Ang iyong 3 IoT sensors sa maisan ay aktibong nagpapadala ng impormasyon bawat 5 minuto.
+              Ang iyong 3 IoT sensors sa maisan ay aktibong nagpapadala ng impormasyon bawat 5 minuto. Naka-save ito sa local SQLite3 kahit mawalan ng internet.
             </div>
           </div>
         </div>
@@ -156,6 +229,9 @@ function ExpertNexus({ data, logs, onSync }) {
           </button>
         </div>
       </div>
+
+      {/* Two-Way Database Sync Control */}
+      <TwoWaySyncBanner />
 
       {syncResult && (
         <div style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#93c5fd' }}>
@@ -304,6 +380,9 @@ function AdminNexus({ data, logs }) {
           </div>
         </div>
       </div>
+
+      {/* Two-Way Database Sync Control */}
+      <TwoWaySyncBanner />
 
       {/* Telemetry Cards */}
       <div className="stat-cards-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 24 }}>
