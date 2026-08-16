@@ -317,8 +317,9 @@ a:hover { color: var(--primary-light); }
   left: var(--sidebar-width);
   right: 0;
   height: var(--topbar-height);
-  background: rgba(7, 18, 13, 0.85);
-  backdrop-filter: blur(12px);
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;

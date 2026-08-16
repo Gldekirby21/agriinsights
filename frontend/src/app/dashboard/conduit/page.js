@@ -65,20 +65,6 @@ function FarmerConduit({ alerts, smsList, onMarkRead, user }) {
         </div>
       </div>
 
-      {/* Multi-modal preference banner */}
-      <div className="card mb-lg" style={{ background: 'linear-gradient(135deg, rgba(18,32,25,0.9), rgba(82,183,136,0.08))', border: '1px solid var(--border-accent)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ fontSize: 32 }}>📱</div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--primary-light)' }}>
-              Naka-link ang iyong numero: <strong>09171234567</strong>
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-              Lahat ng kritikal na alerto ay awtomatikong ipinapadala rin bilang SMS sa iyong cellphone sakaling walang internet sa bukid.
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Alerts list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
