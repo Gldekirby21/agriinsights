@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { getNexusData, getNexusLogs, triggerNexusSync, getNexusTelemetry, getSyncStatus, triggerTwoWaySync } from '@/lib/api';
+import { getNexusData, getNexusLogs, getNexusTelemetry } from '@/lib/api';
 
 const STATUS_COLOR = { connected: 'var(--success)', partial: 'var(--warning)', offline: 'var(--danger)' };
 const LOG_COLOR    = { success: 'var(--success)', warning: 'var(--warning)', anomaly: 'var(--danger)', error: 'var(--danger)' };
@@ -16,81 +16,13 @@ function TimeAgo(isoStr) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-// ─── PURE SUPABASE CLOUD STATUS WIDGET ─────────────────────────────────────────
-function SupabaseCloudBanner() {
-  const [dbStatus, setDbStatus] = useState(null);
-  const [checking, setChecking] = useState(false);
-  const [checkMsg, setCheckMsg] = useState(null);
-
-  useEffect(() => {
-    getSyncStatus().then(setDbStatus).catch(() => {});
-  }, []);
-
-  async function handleHealthCheck() {
-    setChecking(true);
-    setCheckMsg(null);
-    try {
-      const res = await triggerTwoWaySync();
-      setCheckMsg(res?.message || '✓ Supabase Cloud PostgreSQL 16 is live and responsive.');
-    } catch (err) {
-      setCheckMsg('✓ Connected to Supabase Cloud (PostgreSQL 16).');
-    } finally {
-      setChecking(false);
-    }
-  }
-
-  return (
-    <div className="card mb-lg" style={{ background: 'linear-gradient(135deg, rgba(18,32,25,0.95), rgba(16,185,129,0.12))', border: '1px solid rgba(16,185,129,0.35)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
-            ☁️
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
-              Supabase Cloud Database (PostgreSQL 16 + PostGIS)
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-              🟢 <strong>100% Pure Cloud Database</strong> · Direct real-time reads & writes
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={handleHealthCheck}
-          disabled={checking}
-          className="btn btn-primary btn-sm"
-          style={{ background: 'linear-gradient(135deg, #10b981, #047857)', display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          {checking ? (
-            <>
-              <div className="loading-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
-              <span>Checking Cloud...</span>
-            </>
-          ) : (
-            <>
-              <span>⚡ Test Cloud Connection</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {checkMsg && (
-        <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 'var(--radius-md)', fontSize: 12.5, color: 'var(--success)' }}>
-          {checkMsg}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── 1. FARMER VIEW: Simple & Actionable Connection Status ───────────────────
 function FarmerNexus({ data, user }) {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   function handlePlayAudio() {
     if ('speechSynthesis' in window) {
-      const text = `Kumusta ${user?.name || 'Kasama'}. Lahat ng 3 sensors sa Dela Cruz Cornfield ay online at maayos ang signal. Ang pinakabagong lagay ng panahon mula sa PAGASA at presyo sa merkado ay updated na sa iyong Supabase Cloud database.`;
+      const text = `Kumusta ${user?.name || 'Kasama'}. Lahat ng 3 sensors sa Dela Cruz Cornfield ay online at awtomatikong naka-sync sa iyong Supabase Cloud database.`;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'tl-PH';
       utterance.onend = () => setIsPlayingAudio(false);
@@ -108,7 +40,7 @@ function FarmerNexus({ data, user }) {
               ⬡ DataFusion Nexus · Farmer View
             </span>
             <h1 className="page-title" style={{ marginTop: 10 }}>Koneksyon ng Bukid sa Data</h1>
-            <p className="page-subtitle">Pagsusuri kung active at updated ang sensors sa iyong lupain sa Dela Cruz Cornfield</p>
+            <p className="page-subtitle">Awtomatikong naka-sync ang lahat ng IoT sensors sa iyong lupain sa Dela Cruz Cornfield</p>
           </div>
           <button
             onClick={handlePlayAudio}
@@ -120,9 +52,6 @@ function FarmerNexus({ data, user }) {
         </div>
       </div>
 
-      {/* Pure Supabase Cloud Control */}
-      <SupabaseCloudBanner />
-
       {/* High Level Plain Status */}
       <div className="card mb-lg" style={{ background: 'linear-gradient(135deg, rgba(18,32,25,0.9), rgba(82,183,136,0.1))', border: '1px solid var(--border-accent)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -131,10 +60,10 @@ function FarmerNexus({ data, user }) {
           </div>
           <div>
             <div style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, color: 'var(--primary-light)' }}>
-              Lahat ng Sensors at Weather Stations ay Online!
+              Lahat ng Sensors at Feeds ay Awtomatikong Naka-Sync!
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
-              Ang iyong 3 IoT sensors sa maisan ay aktibong nagpapadala ng impormasyon bawat 5 minuto. Naka-save ito sa Supabase Cloud PostgreSQL database.
+              Direktang nag-a-update sa Supabase Cloud ang mga IoT sensors sa bukid bawat 5 minuto nang tuloy-tuloy.
             </div>
           </div>
         </div>
@@ -143,9 +72,9 @@ function FarmerNexus({ data, user }) {
       {/* Simple Connection Cards */}
       <div className="grid-3 mb-lg">
         {[
-          { title: '🌱 IoT Sensors sa Lupa', desc: '3 sa 3 sensors ay may 100% signal', status: 'Online', time: '5m ago', icon: '📡', color: 'green' },
-          { title: '🌦️ PAGASA Weather Station', desc: 'Tupi South Cotabato Doppler Feed', status: 'Connected', time: '15m ago', icon: '🌤️', color: 'green' },
-          { title: '💰 DA Presyo sa Palengke', desc: 'Region XII Corn & Commodity Feed', status: 'Updated', time: '1h ago', icon: '📈', color: 'green' },
+          { title: '🌱 IoT Sensors sa Lupa', desc: '3 sa 3 sensors ay may 100% signal', status: 'Online (Auto-Sync)', time: '5m ago', icon: '📡', color: 'green' },
+          { title: '🌦️ PAGASA Weather Station', desc: 'Tupi South Cotabato Doppler Feed', status: 'Live Connected', time: '15m ago', icon: '🌤️', color: 'green' },
+          { title: '💰 DA Presyo sa Palengke', desc: 'Region XII Corn & Commodity Feed', status: 'Auto-Updated', time: '1h ago', icon: '📈', color: 'green' },
         ].map((c) => (
           <div key={c.title} className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
@@ -162,7 +91,7 @@ function FarmerNexus({ data, user }) {
       {/* Plain Language Data Snapshot */}
       <div className="card">
         <div className="card-header">
-          <div className="card-title">Pinakabagong Tala sa Iyong Lupa</div>
+          <div className="card-title">Pinakabagong Tala sa Iyong Lupa (Live Cloud Feed)</div>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Updated: {new Date(data?.latest_fused?.fused_at).toLocaleTimeString()}</span>
         </div>
         <div className="grid-3">
@@ -185,22 +114,8 @@ function FarmerNexus({ data, user }) {
 }
 
 // ─── 2. EXPERT VIEW: Multi-Farm Ingestion Audit & Anomaly Management ──────────
-function ExpertNexus({ data, logs, onSync }) {
-  const [syncing, setSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState(null);
+function ExpertNexus({ data, logs }) {
   const [resolvedAnomalies, setResolvedAnomalies] = useState([]);
-
-  async function handleSync(source) {
-    setSyncing(true);
-    try {
-      const res = await triggerNexusSync(source);
-      setSyncResult(res);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSyncing(false);
-    }
-  }
 
   function resolveAnomaly(id) {
     setResolvedAnomalies((prev) => [...prev, id]);
@@ -215,34 +130,22 @@ function ExpertNexus({ data, logs, onSync }) {
               ⬡ DataFusion Nexus · Agri Expert Audit
             </span>
             <h1 className="page-title" style={{ marginTop: 10 }}>Multi-Farm Ingestion & Quality Audit</h1>
-            <p className="page-subtitle">Cross-farm telemetry validation, anomaly inspection, and manual ingestion triggers for Tupi pilot cohort</p>
+            <p className="page-subtitle">Real-time telemetry validation and automated cloud ingestion for Tupi pilot cohort</p>
           </div>
-          <button
-            onClick={() => handleSync('all')}
-            className="btn btn-primary btn-sm"
-            disabled={syncing}
-            style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }}
-          >
-            {syncing ? '🔄 Syncing Feeds...' : '⚡ Trigger Manual Sync'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="badge badge-success" style={{ padding: '6px 12px', fontSize: 12 }}>
+              🟢 Supabase Cloud Live (Auto-Sync Active)
+            </span>
+          </div>
         </div>
       </div>
-
-      {/* Pure Supabase Cloud Control */}
-      <SupabaseCloudBanner />
-
-      {syncResult && (
-        <div style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#93c5fd' }}>
-          ✓ {syncResult.message} · Latency: {syncResult.latency_ms}ms · Added {syncResult.records_added} new records
-        </div>
-      )}
 
       {/* Expert Integrity Stats */}
       <div className="stat-cards-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 24 }}>
         {[
           { label: 'Data Quality Index', value: `${data?.latest_fused?.data_quality_score}%`, icon: '📊', color: 'green', sub: '99.1% Timeliness' },
           { label: 'Flagged Anomalies', value: Math.max(0, 2 - resolvedAnomalies.length), icon: '⚠️', color: resolvedAnomalies.length >= 2 ? 'green' : 'amber', sub: `${resolvedAnomalies.length} resolved` },
-          { label: 'Active Pilot Feeds', value: data?.sources?.length || 5, icon: '🔗', color: 'info', sub: '1 Satellite Partial' },
+          { label: 'Active Pilot Feeds', value: data?.sources?.length || 5, icon: '🔗', color: 'info', sub: 'All Streams Auto-Synced' },
           { label: 'Fused Telemetry Rate', value: '1,754/day', icon: '🗃️', color: 'green', sub: '72 rec/min' },
         ].map((s) => (
           <div key={s.label} className={`stat-card ${s.color}`}>
@@ -292,11 +195,11 @@ function ExpertNexus({ data, logs, onSync }) {
         </div>
       </div>
 
-      {/* Data Sources Grid with Expert Sync */}
+      {/* Data Sources Grid */}
       <div className="charts-grid">
         <div className="card">
           <div className="card-header">
-            <div className="card-title">Connected Sources Status</div>
+            <div className="card-title">Connected Sources (Real-Time Auto-Stream)</div>
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>5 feeds active</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -307,9 +210,7 @@ function ExpertNexus({ data, logs, onSync }) {
                   <div className="source-name">{src.name}</div>
                   <div className="source-meta">Sync: {TimeAgo(src.last_sync)} · {src.records_today} recs today</div>
                 </div>
-                <button onClick={() => handleSync(src.type)} className="btn btn-secondary btn-xs" disabled={syncing}>
-                  Sync Now
-                </button>
+                <span className="badge badge-success" style={{ fontSize: 11 }}>Auto-Sync</span>
               </div>
             ))}
           </div>
@@ -340,25 +241,12 @@ function ExpertNexus({ data, logs, onSync }) {
 }
 
 // ─── 3. ADMIN VIEW: Full Pipeline Architecture & Telemetry Diagnostics ───────
-function AdminNexus({ data, logs }) {
+function AdminNexus({ logs }) {
   const [telemetry, setTelemetry] = useState(null);
-  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     getNexusTelemetry().then(setTelemetry).catch(console.error);
   }, []);
-
-  async function handleBatchSync() {
-    setSyncing(true);
-    try {
-      await triggerNexusSync('all');
-      alert('Batch sync completed successfully across all nodes.');
-    } catch (e) {
-      alert('Sync failed: ' + e.message);
-    } finally {
-      setSyncing(false);
-    }
-  }
 
   return (
     <div>
@@ -371,16 +259,11 @@ function AdminNexus({ data, logs }) {
             <h1 className="page-title" style={{ marginTop: 10 }}>Pipeline Telemetry & Data Infrastructure</h1>
             <p className="page-subtitle">MQTT Message Broker status, Supabase Cloud storage metrics, API Gateway latency, and raw data ingestion audit</p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={handleBatchSync} className="btn btn-primary btn-sm" disabled={syncing} style={{ background: 'linear-gradient(135deg, var(--amber), var(--amber-dark))' }}>
-              {syncing ? 'Syncing...' : '🔄 Run Pipeline Sync'}
-            </button>
-          </div>
+          <span className="badge badge-success" style={{ padding: '6px 12px', fontSize: 12 }}>
+            🟢 Automated 24/7 Cloud Sync Active
+          </span>
         </div>
       </div>
-
-      {/* Pure Supabase Cloud Control */}
-      <SupabaseCloudBanner />
 
       {/* Telemetry Cards */}
       <div className="stat-cards-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 24 }}>
