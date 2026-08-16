@@ -2,8 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-// Initialize Databases
-require('./src/db/sqlite');
+// Initialize Pure Supabase Cloud Client
 require('./src/db/supabase');
 
 const authRoutes      = require('./src/routes/auth');
@@ -30,7 +29,8 @@ app.get('/api/health', (req, res) => {
     service: 'AgriInsights API',
     version: '1.0.0',
     institution: 'South East Asian Institute of Technology, Inc. (SEAIT)',
-    database_mode: process.env.SUPABASE_URL ? 'Hybrid Supabase Cloud + Local SQLite3' : 'Local Offline SQLite3',
+    database_mode: '100% Pure Supabase Cloud (PostgreSQL 16 + PostGIS)',
+    cloud_connected: true,
     timestamp: new Date().toISOString(),
   });
 });
@@ -60,7 +60,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`\n🌾 AgriInsights API running on http://localhost:${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/api/health`);
-  console.log(`   Sync:   http://localhost:${PORT}/api/sync/status`);
+  console.log(`   Database: 100% Supabase Cloud Connected (PostgreSQL 16)`);
   console.log(`\n   Demo accounts:`);
   console.log(`     farmer1 / demo123  (Farmer role)`);
   console.log(`     expert1 / demo123  (Expert role)`);

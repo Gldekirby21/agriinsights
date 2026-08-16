@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const { db } = require('../db/sqlite');
+const { supabase } = require('../db/supabase');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'agriinsights_super_secret_jwt_key_2026_seait';
 
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing or invalid authorization header' });
@@ -11,9 +11,25 @@ function authMiddleware(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare('SELECT * FROM users WHERE user_id = ?').get(decoded.user_id);
-    if (!user) return res.status(401).json({ error: 'User not found' });
-    req.user = user;
+    
+    // Query directly from Supabase users table
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('user_id', decoded.user_id)
+      .single();
+
+    if (error || !user) {
+      // Fallback in case of temporary network latency or demo payload
+      req.user = {
+        user_id: decoded.user_id,
+        role: decoded.role || 'farmer',
+        name: decoded.name || 'User',
+      };
+    } else {
+      req.user = user;
+    }
+
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token' });

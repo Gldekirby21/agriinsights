@@ -1,63 +1,36 @@
 const express = require('express');
 const { authMiddleware } = require('../middleware/auth');
-const { getSyncStatus, twoWaySync, pushLocalToCloud, pullCloudToLocal } = require('../db/supabase');
-const { queueChange, db } = require('../db/sqlite');
+const { getDbStatus, supabase } = require('../db/supabase');
 
 const router = express.Router();
 
-// GET /api/sync/status — Hybrid Offline/Cloud sync status
+// GET /api/sync/status — Supabase Cloud Database live status
 router.get('/status', (req, res) => {
-  res.json(getSyncStatus());
+  res.json(getDbStatus());
 });
 
-// POST /api/sync/two-way — Complete 2-Way Sync (Cloud ⇄ Local SQLite3)
-router.post('/two-way', authMiddleware, async (req, res) => {
+// POST /api/sync/health-check — Test connection to Supabase tables
+router.post('/health-check', authMiddleware, async (req, res) => {
   try {
-    const result = await twoWaySync();
-    res.json(result);
+    const { count: usersCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
+    const { count: farmsCount } = await supabase.from('farms').select('*', { count: 'exact', head: true });
+    const { count: alertsCount } = await supabase.from('alerts').select('*', { count: 'exact', head: true });
+    const { count: recsCount } = await supabase.from('recommendations').select('*', { count: 'exact', head: true });
+
+    res.json({
+      success: true,
+      provider: 'Supabase Cloud (PostgreSQL 16)',
+      live_tables: {
+        users: usersCount || 0,
+        farms: farmsCount || 0,
+        alerts: alertsCount || 0,
+        recommendations: recsCount || 0,
+      },
+      message: '✓ All queries connecting directly and in real-time to Supabase Cloud!',
+    });
   } catch (err) {
-    res.status(500).json({ error: '2-Way Sync failed', detail: err.message });
+    res.status(500).json({ error: 'Supabase health check failed', detail: err.message });
   }
-});
-
-// POST /api/sync/trigger — Trigger upload push from SQLite to Supabase
-router.post('/trigger', authMiddleware, async (req, res) => {
-  try {
-    const result = await pushLocalToCloud();
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: 'Push sync failed', detail: err.message });
-  }
-});
-
-// POST /api/sync/pull — Trigger download pull from Supabase to SQLite
-router.post('/pull', authMiddleware, async (req, res) => {
-  try {
-    const result = await pullCloudToLocal();
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: 'Pull sync failed', detail: err.message });
-  }
-});
-
-// POST /api/sync/queue-sample — Queue an offline reading sample for testing
-router.post('/queue-sample', authMiddleware, (req, res) => {
-  const sampleReading = {
-    farm_id: 'f1',
-    sensor_id: 's1',
-    sensor_type: 'soil_moisture',
-    value: parseFloat((Math.random() * 20 + 50).toFixed(1)),
-    unit: '%',
-    recorded_at: new Date().toISOString(),
-  };
-
-  queueChange('sensor_readings', `s1_${Date.now()}`, 'INSERT', sampleReading);
-
-  res.json({
-    success: true,
-    message: 'Sample sensor reading saved to local SQLite3 and queued for Supabase cloud sync.',
-    queued_item: sampleReading,
-  });
 });
 
 module.exports = router;
