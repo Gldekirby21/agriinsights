@@ -9,10 +9,23 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('agri_theme');
+                  var theme = saved ? saved : 'dark';
+                  document.documentElement.setAttribute('data-theme', theme);
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
       </head>
       <body>{children}</body>
     </html>

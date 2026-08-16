@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const DEMO_ACCOUNTS = [
   { username: 'farmer1', password: 'demo123', role: 'Farmer', icon: '🌽', name: 'Juan Dela Cruz' },
@@ -47,13 +48,16 @@ export default function LoginPage() {
       </div>
 
       <div className="login-card animate-fade-up">
-        {/* Logo */}
-        <div className="login-logo">
-          <div className="login-logo-icon">🌾</div>
-          <div>
-            <div className="login-logo-text">AgriInsights</div>
-            <div className="login-logo-sub">SEAIT — College of ICT · IT ELEC 4</div>
+        {/* Header with Logo and Theme Toggle */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+          <div className="login-logo" style={{ marginBottom: 0 }}>
+            <div className="login-logo-icon">🌾</div>
+            <div>
+              <div className="login-logo-text">AgriInsights</div>
+              <div className="login-logo-sub">SEAIT — College of ICT · IT ELEC 4</div>
+            </div>
           </div>
+          <ThemeToggle />
         </div>
 
         <h1 className="login-title">Welcome back</h1>

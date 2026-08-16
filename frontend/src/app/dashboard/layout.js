@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { getAlerts } from '@/lib/api';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const ROLE_NAV_CONFIG = {
   farmer: {
@@ -276,8 +277,9 @@ export default function DashboardLayout({ children }) {
           <div className="topbar-title">{pageInfo.title}</div>
           <div className="topbar-breadcrumb">{pageInfo.sub}</div>
         </div>
-        <div className="topbar-right">
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tupi, South Cotabato</div>
+        <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 4 }}>Tupi, South Cotabato</div>
+          <ThemeToggle />
           <Link href="/dashboard/conduit" id="alerts-topbar-btn" className="topbar-btn" title="Alerts">
             <span>🔔</span>
             {unreadAlerts > 0 && <span className="badge">{unreadAlerts}</span>}
