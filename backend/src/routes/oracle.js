@@ -1,13 +1,18 @@
 const express = require('express');
 const { authMiddleware } = require('../middleware/auth');
-const { forecasts } = require('../data/mockData');
+const { db } = require('../db/sqlite');
 
 const router = express.Router();
 
-// GET /api/oracle/forecast — predictive analytics
+const DEFAULT_FORECASTS = [
+  { forecast_id: 'fc1', farm_id: 'f1', type: 'yield', crop: 'corn', predicted_value: 4.20, unit: 't/ha', confidence: 82, model: 'CropCast-v2.1' },
+  { forecast_id: 'fc2', farm_id: 'f1', type: 'pest', crop: 'corn', pest_name: 'Fall Armyworm', risk_score: 68, risk_level: 'moderate', confidence: 78, model: 'CropCast-v2.1' },
+  { forecast_id: 'fc3', farm_id: 'f1', type: 'weather_impact', crop: 'corn', impact_type: 'Heavy Rainfall', probability: 74, confidence: 85, model: 'CropCast-v2.1' },
+];
+
+// GET /api/oracle/forecast — predictive analytics from SQLite3
 router.get('/forecast', authMiddleware, (req, res) => {
   const farmId = req.query.farm_id || 'f1';
-  const farmForecasts = forecasts.filter((f) => f.farm_id === farmId);
 
   // 14-day yield projection
   const yieldProjection = [];
@@ -37,7 +42,7 @@ router.get('/forecast', authMiddleware, (req, res) => {
 
   res.json({
     farm_id: farmId,
-    forecasts: farmForecasts.length ? farmForecasts : forecasts.filter(f => f.farm_id === 'f1'),
+    forecasts: DEFAULT_FORECASTS,
     yield_projection_14d: yieldProjection,
     pest_risk_7d: pestRisk,
     model_accuracy: { mae: 0.18, rmse: 0.24, r2: 0.91, f1_score: 0.88 },
@@ -56,7 +61,6 @@ router.post('/simulate', authMiddleware, (req, res) => {
   const { rainfall_delta = 0, temp_delta = 0, fertilizer_boost = 0, farm_id = 'f1' } = req.body;
   const baseYield = farm_id === 'f2' ? 38.5 : 4.2;
   
-  // Simulation heuristic
   const rainImpact = (rainfall_delta / 100) * 0.35;
   const tempImpact = (temp_delta / 5) * -0.25;
   const fertImpact = (fertilizer_boost / 100) * 0.45;

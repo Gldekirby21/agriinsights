@@ -1,6 +1,6 @@
 const express = require('express');
 const { authMiddleware } = require('../middleware/auth');
-const { alerts } = require('../data/mockData');
+const { db, queueChange } = require('../db/sqlite');
 
 const router = express.Router();
 
@@ -10,36 +10,61 @@ const broadcastMessages = [
   { id: 'sms3', to: '09189876543 (Maria Bautista)', farm: 'Bautista Pineapple Estate', body: '[AgriInsights] INFO: Presyo ng pinya ngayon: ₱12.50/kg. Magandang pagkakataon para mag-ani.', sent_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), delivered: true, channel: 'SMS' },
 ];
 
-// GET /api/conduit/alerts
+// GET /api/conduit/alerts from SQLite3
 router.get('/alerts', authMiddleware, (req, res) => {
   const farmId = req.query.farm_id;
-  const filtered = farmId ? alerts.filter((a) => a.farm_id === farmId) : alerts;
-  const sorted = [...filtered].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  let alerts;
+  if (farmId) {
+    alerts = db.prepare('SELECT * FROM alerts WHERE farm_id = ? ORDER BY created_at DESC').all(farmId);
+  } else {
+    alerts = db.prepare('SELECT * FROM alerts ORDER BY created_at DESC').all();
+  }
+
+  const formatted = alerts.map((a) => ({
+    alert_id: a.alert_id,
+    farm_id: a.farm_id,
+    severity: a.severity,
+    type: a.type,
+    title: a.title,
+    message: a.message,
+    timestamp: a.created_at,
+    read: !!a.is_read,
+    author: a.author,
+  }));
+
   res.json({
-    alerts: sorted,
-    unread_count: sorted.filter((a) => !a.read).length,
+    alerts: formatted,
+    unread_count: formatted.filter((a) => !a.read).length,
   });
 });
 
-// POST /api/conduit/broadcast — Expert or Admin sends broadcast notification
+// POST /api/conduit/broadcast — Expert or Admin sends broadcast alert to SQLite3 and queues for Supabase
 router.post('/broadcast', authMiddleware, (req, res) => {
   const { title, message, severity, target_group, send_sms } = req.body;
   if (!title || !message) {
     return res.status(400).json({ error: 'Title and message are required' });
   }
 
+  const alertId = `al_${Date.now()}`;
   const newAlert = {
-    alert_id: `a_bc_${Date.now()}`,
+    alert_id: alertId,
     farm_id: target_group === 'f2' ? 'f2' : 'f1',
     severity: severity || 'warning',
     type: 'broadcast',
     title,
     message,
-    timestamp: new Date().toISOString(),
-    read: false,
-    author: req.user.name,
+    is_read: 0,
+    author: req.user.name || 'Agri Expert',
   };
-  alerts.unshift(newAlert);
+
+  const stmt = db.prepare(`
+    INSERT INTO alerts (alert_id, farm_id, severity, type, title, message, is_read, author)
+    VALUES (@alert_id, @farm_id, @severity, @type, @title, @message, @is_read, @author)
+  `);
+  stmt.run(newAlert);
+
+  // Queue for cloud sync
+  queueChange('alerts', alertId, 'INSERT', newAlert);
 
   if (send_sms) {
     broadcastMessages.unshift({
@@ -53,14 +78,22 @@ router.post('/broadcast', authMiddleware, (req, res) => {
     });
   }
 
-  res.json({ success: true, alert: newAlert, sms_dispatched: !!send_sms });
+  res.json({
+    success: true,
+    alert: { ...newAlert, read: false, timestamp: new Date().toISOString() },
+    sms_dispatched: !!send_sms,
+  });
 });
 
 // PATCH /api/conduit/alerts/:id/read
 router.patch('/alerts/:id/read', authMiddleware, (req, res) => {
-  const alert = alerts.find((a) => a.alert_id === req.params.id);
-  if (!alert) return res.status(404).json({ error: 'Alert not found' });
-  alert.read = true;
+  const { id } = req.params;
+  const stmt = db.prepare('UPDATE alerts SET is_read = 1 WHERE alert_id = ?');
+  const result = stmt.run(id);
+
+  if (result.changes === 0) return res.status(404).json({ error: 'Alert not found' });
+
+  queueChange('alerts', id, 'UPDATE', { alert_id: id, is_read: true });
   res.json({ success: true });
 });
 
