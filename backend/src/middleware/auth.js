@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-const { users } = require('../data/mockData');
+const { db } = require('../db/sqlite');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'agriinsights_secret_2026_seait';
+const JWT_SECRET = process.env.JWT_SECRET || 'agriinsights_super_secret_jwt_key_2026_seait';
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -11,7 +11,7 @@ function authMiddleware(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = users.find((u) => u.user_id === decoded.user_id);
+    const user = db.prepare('SELECT * FROM users WHERE user_id = ?').get(decoded.user_id);
     if (!user) return res.status(401).json({ error: 'User not found' });
     req.user = user;
     next();

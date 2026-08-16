@@ -19,6 +19,19 @@ const db = new Database(dbPath);
 // Enable WAL mode for high concurrency
 db.pragma('journal_mode = WAL');
 
+// ─── Auto-Migration Helpers ───────────────────────────────────────────────────
+function ensureColumn(table, column, typeDef) {
+  try {
+    const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+    if (!cols.some(c => c.name === column)) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${typeDef}`);
+      console.log(`✓ Added column ${column} to table ${table}`);
+    }
+  } catch (err) {
+    // table might not exist yet, schema create below will handle it
+  }
+}
+
 // ─── Initialize Complete SQLite3 Schema ───────────────────────────────────────
 db.exec(`
   -- 1. USERS TABLE
@@ -26,6 +39,7 @@ db.exec(`
     user_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
+    password_hash TEXT,
     role TEXT CHECK (role IN ('farmer', 'expert', 'admin')) DEFAULT 'farmer',
     contact TEXT,
     preferred_language TEXT DEFAULT 'Filipino',
@@ -46,7 +60,7 @@ db.exec(`
     latitude REAL NOT NULL,
     longitude REAL NOT NULL,
     size_hectares REAL NOT NULL,
-    crop_types_csv TEXT NOT NULL,
+    crop_types_csv TEXT DEFAULT 'corn,vegetables',
     soil_type TEXT NOT NULL,
     elevation_m INTEGER DEFAULT 380,
     status TEXT DEFAULT 'active'
@@ -164,6 +178,13 @@ db.exec(`
     synced_at DATETIME
   );
 `);
+
+// Run Migrations on Existing DB
+ensureColumn('users', 'specialization', 'TEXT');
+ensureColumn('users', 'password_hash', 'TEXT');
+ensureColumn('farms', 'crop_types_csv', "TEXT DEFAULT 'corn,vegetables'");
+ensureColumn('farms', 'elevation_m', 'INTEGER DEFAULT 380');
+ensureColumn('alerts', 'author', "TEXT DEFAULT 'System Alert'");
 
 // ─── Auto-Seed Real Data if Empty ─────────────────────────────────────────────
 const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
