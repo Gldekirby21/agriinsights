@@ -9,7 +9,8 @@ const METEOCONS_BASE = 'https://cdn.meteocons.com/3.0.0-next.10/svg/fill';
 export const METEOCONS_DAY = {
   sunny: `${METEOCONS_BASE}/sun-hot.svg`,
   hot: `${METEOCONS_BASE}/sun-hot.svg`,
-  clear: `${METEOCONS_BASE}/mostly-clear-day.svg`,
+  clear: `${METEOCONS_BASE}/clear-day.svg`,
+  clear_day: `${METEOCONS_BASE}/clear-day.svg`,
   mostly_clear: `${METEOCONS_BASE}/mostly-clear-day.svg`,
   partly_cloudy: `${METEOCONS_BASE}/mostly-clear-day.svg`,
   cloudy: `${METEOCONS_BASE}/cloudy.svg`,
@@ -33,9 +34,10 @@ export const METEOCONS_DAY = {
 };
 
 export const METEOCONS_NIGHT = {
-  sunny: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
-  hot: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
-  clear: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
+  sunny: `${METEOCONS_BASE}/clear-night.svg`,
+  hot: `${METEOCONS_BASE}/clear-night.svg`,
+  clear: `${METEOCONS_BASE}/clear-night.svg`,
+  clear_night: `${METEOCONS_BASE}/clear-night.svg`,
   mostly_clear: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
   partly_cloudy: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
   cloudy: `${METEOCONS_BASE}/cloudy.svg`,
