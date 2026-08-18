@@ -1,57 +1,97 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
- * Official Meteocons 3.0 Animated Weather Icon Mapping
- * High-definition vector animated SVGs with native smooth animations
+ * Official Meteocons 3.0 Animated Weather Icon Mapping (Day & Night Adaptive)
  */
 const METEOCONS_BASE = 'https://cdn.meteocons.com/3.0.0-next.10/svg/fill';
 
-export const METEOCONS = {
+export const METEOCONS_DAY = {
   sunny: `${METEOCONS_BASE}/sun-hot.svg`,
+  hot: `${METEOCONS_BASE}/sun-hot.svg`,
   clear: `${METEOCONS_BASE}/mostly-clear-day.svg`,
   mostly_clear: `${METEOCONS_BASE}/mostly-clear-day.svg`,
   partly_cloudy: `${METEOCONS_BASE}/mostly-clear-day.svg`,
   cloudy: `${METEOCONS_BASE}/cloudy.svg`,
   overcast: `${METEOCONS_BASE}/cloudy.svg`,
-  drizzle: `${METEOCONS_BASE}/drizzle.svg`,
+  drizzle: `${METEOCONS_BASE}/mostly-clear-day-drizzle.svg`,
   light_rain: `${METEOCONS_BASE}/mostly-clear-day-drizzle.svg`,
-  rain: `${METEOCONS_BASE}/rain.svg`,
+  rain: `${METEOCONS_BASE}/partly-cloudy-day-rain.svg`,
   heavy_rain: `${METEOCONS_BASE}/partly-cloudy-day-rain.svg`,
   downpour: `${METEOCONS_BASE}/rain.svg`,
-  thunderstorm: `${METEOCONS_BASE}/hail.svg`,
-  hail: `${METEOCONS_BASE}/hail.svg`,
+  thunderstorm: `${METEOCONS_BASE}/mostly-clear-day-hail.svg`,
+  hail: `${METEOCONS_BASE}/mostly-clear-day-hail.svg`,
+  fog: `${METEOCONS_BASE}/mostly-clear-day-fog.svg`,
+  fog_day: `${METEOCONS_BASE}/fog-day.svg`,
   mist: `${METEOCONS_BASE}/mist.svg`,
-  fog: `${METEOCONS_BASE}/fog-day.svg`,
-  haze: `${METEOCONS_BASE}/haze-day.svg`,
+  haze: `${METEOCONS_BASE}/partly-cloudy-day-haze.svg`,
+  haze_day: `${METEOCONS_BASE}/haze-day.svg`,
   dust: `${METEOCONS_BASE}/dust-day.svg`,
-  smoke: `${METEOCONS_BASE}/smoke.svg`,
-  snow: `${METEOCONS_BASE}/snow.svg`,
-  sleet: `${METEOCONS_BASE}/sleet.svg`,
+  smoke: `${METEOCONS_BASE}/partly-cloudy-day-smoke.svg`,
+  snow: `${METEOCONS_BASE}/partly-cloudy-day-snow.svg`,
+  sleet: `${METEOCONS_BASE}/partly-cloudy-day-sleet.svg`,
+};
+
+export const METEOCONS_NIGHT = {
+  sunny: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
+  hot: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
+  clear: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
+  mostly_clear: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
+  partly_cloudy: `${METEOCONS_BASE}/partly-cloudy-night.svg`,
+  cloudy: `${METEOCONS_BASE}/cloudy.svg`,
+  overcast: `${METEOCONS_BASE}/cloudy.svg`,
+  drizzle: `${METEOCONS_BASE}/partly-cloudy-night-drizzle.svg`,
+  light_rain: `${METEOCONS_BASE}/partly-cloudy-night-drizzle.svg`,
+  rain: `${METEOCONS_BASE}/partly-cloudy-night-rain.svg`,
+  heavy_rain: `${METEOCONS_BASE}/partly-cloudy-night-rain.svg`,
+  downpour: `${METEOCONS_BASE}/rain.svg`,
+  thunderstorm: `${METEOCONS_BASE}/partly-cloudy-night-hail.svg`,
+  hail: `${METEOCONS_BASE}/partly-cloudy-night-hail.svg`,
+  fog: `${METEOCONS_BASE}/partly-cloudy-night-fog.svg`,
+  fog_night: `${METEOCONS_BASE}/fog-night.svg`,
+  mist: `${METEOCONS_BASE}/mist.svg`,
+  haze: `${METEOCONS_BASE}/partly-cloudy-night-haze.svg`,
+  haze_night: `${METEOCONS_BASE}/haze-night.svg`,
+  dust: `${METEOCONS_BASE}/dust-night.svg`,
+  smoke: `${METEOCONS_BASE}/partly-cloudy-night-smoke.svg`,
+  snow: `${METEOCONS_BASE}/partly-cloudy-night-snow.svg`,
+  sleet: `${METEOCONS_BASE}/partly-cloudy-night-sleet.svg`,
 };
 
 /**
  * WeatherAnimatedIcon
- * Dynamically resolves condition or WMO weather code to official Meteocons animated SVG
+ * Dynamically switches between Day and Night animated Meteocons based on local clock time (e.g. 6pm - 6am = Night)
  */
 export default function WeatherAnimatedIcon({
   code = null,
   condition = '',
   rainfall_mm = 0,
   temperature = null,
+  isNight = null, // Can force true/false or auto-detect based on local hour
   size = 48,
   className = '',
   style = {},
   label = '',
 }) {
   const [hasError, setHasError] = useState(false);
+  const [isNightTime, setIsNightTime] = useState(false);
 
-  // 1. Resolve normalized condition key
+  useEffect(() => {
+    if (isNight !== null) {
+      setIsNightTime(Boolean(isNight));
+    } else {
+      const hour = new Date().getHours();
+      // Night time: 6:00 PM (18:00) to 5:59 AM (05:59)
+      setIsNightTime(hour >= 18 || hour < 6);
+    }
+  }, [isNight]);
+
+  // 1. Resolve condition key
   let key = 'partly_cloudy';
 
   if (condition) {
     const c = condition.toLowerCase().replace(/[\s-]/g, '_');
-    if (METEOCONS[c]) {
+    if (METEOCONS_DAY[c]) {
       key = c;
     } else if (c.includes('storm') || c.includes('typhoon') || c.includes('thunder') || c.includes('kidlat')) {
       key = 'thunderstorm';
@@ -93,26 +133,17 @@ export default function WeatherAnimatedIcon({
     key = 'mostly_clear';
   }
 
-  const iconUrl = METEOCONS[key] || METEOCONS.partly_cloudy;
+  // Pick Day vs Night icon dictionary
+  const activeDict = isNightTime ? METEOCONS_NIGHT : METEOCONS_DAY;
+  const iconUrl = activeDict[key] || (isNightTime ? METEOCONS_NIGHT.partly_cloudy : METEOCONS_DAY.partly_cloudy);
 
   if (hasError) {
-    // Fallback emoji
-    const emojiMap = {
-      sunny: '☀️',
-      clear: '🌤️',
-      mostly_clear: '🌤️',
-      partly_cloudy: '⛅',
-      cloudy: '☁️',
-      drizzle: '🌦️',
-      rain: '🌧️',
-      heavy_rain: '⛈️',
-      thunderstorm: '⛈️',
-      fog: '🌫️',
-      haze: '🌫️',
-    };
+    const emojiMap = isNightTime
+      ? { sunny: '🌙', clear: '🌙', mostly_clear: '🌤️', partly_cloudy: '☁️', drizzle: '🌧️', rain: '🌧️', heavy_rain: '⛈️', thunderstorm: '⛈️', fog: '🌫️' }
+      : { sunny: '☀️', clear: '🌤️', mostly_clear: '🌤️', partly_cloudy: '⛅', drizzle: '🌦️', rain: '🌧️', heavy_rain: '⛈️', thunderstorm: '⛈️', fog: '🌫️' };
     return (
       <span style={{ fontSize: size * 0.8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', ...style }}>
-        {emojiMap[key] || '🌤️'}
+        {emojiMap[key] || (isNightTime ? '🌙' : '🌤️')}
       </span>
     );
   }
@@ -126,11 +157,13 @@ export default function WeatherAnimatedIcon({
         justifyContent: 'center',
         width: size,
         height: size,
-        filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.12))',
-        transition: 'transform 0.25s ease',
+        filter: isNightTime
+          ? 'drop-shadow(0 2px 10px rgba(96, 165, 250, 0.25))'
+          : 'drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2))',
+        transition: 'all 0.25s ease',
         ...style,
       }}
-      title={label || `Weather: ${key.replace('_', ' ')}`}
+      title={label || `Weather: ${key.replace('_', ' ')} (${isNightTime ? 'Night' : 'Day'})`}
     >
       <img
         src={iconUrl}

@@ -96,7 +96,7 @@ function FarmerPulse({ data, user }) {
                 <div key={d.date} style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>{dayName}</div>
                   <div style={{ margin: '4px 0' }}>
-                    <WeatherAnimatedIcon condition={cond} size={30} />
+                    <WeatherAnimatedIcon condition={cond} size={32} isNight={false} />
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{Math.round(d.temp_max)}°</div>
                   <div style={{ fontSize: 10, color: d.rainfall_mm > 0 ? '#38bdf8' : 'var(--text-muted)' }}>
