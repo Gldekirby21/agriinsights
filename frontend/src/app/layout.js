@@ -1,4 +1,5 @@
 import './globals.css';
+import { LanguageProvider } from '@/context/LanguageContext';
 
 export const metadata = {
   title: 'AgriInsights — Multi-Modal Analytics for Farmers',
@@ -27,7 +28,11 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   );
 }

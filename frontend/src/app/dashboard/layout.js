@@ -4,192 +4,199 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { getAlerts } from '@/lib/api';
 import ThemeToggle from '@/components/ThemeToggle';
-
-const ROLE_NAV_CONFIG = {
-  farmer: {
-    roleLabel: 'Magsasaka / Farmer',
-    roleTag: '🌽 FARMER VIEW',
-    sectionLabels: {
-      main: 'Pangunahin',
-      modules: 'Mga Modyul ng Bukid',
-      manage: 'Pamamahala',
-    },
-    items: [
-      { href: '/dashboard', label: 'Aking Bukid (Overview)', feature: null, icon: '⊞', section: 'main' },
-      
-      { href: '/dashboard/nexus', label: 'Koneksyon sa Sensors', feature: 'DataFusion Nexus', icon: '⬡', section: 'modules' },
-      { href: '/dashboard/pulse', label: 'Kalagayan ng Lupa & Ulan', feature: 'AgriVision Pulse', icon: '◈', section: 'modules' },
-      { href: '/dashboard/oracle', label: 'Pagtantiya sa Ani & Peste', feature: 'CropCast Oracle', icon: '◉', section: 'modules' },
-      { href: '/dashboard/strategist', label: 'Mga Payo at Hakbang', feature: 'OptiFarm Strategist', icon: '◆', section: 'modules' },
-      { href: '/dashboard/conduit', label: 'Mga Alerto at Mensahe', feature: 'MultiSense Conduit', icon: '◎', section: 'modules', alertKey: true },
-      
-      { href: '/dashboard/farm', label: 'Profile ng Aking Lupa', feature: null, icon: '⌂', section: 'manage' },
-      { href: '/dashboard/feedback', label: 'Pagsusuri / Feedback (SUS)', feature: null, icon: '✦', section: 'manage' },
-    ],
-  },
-
-  expert: {
-    roleLabel: 'Agri Expert (Dr. Reyes)',
-    roleTag: '🔬 AGRI EXPERT VIEW',
-    sectionLabels: {
-      main: 'Cohort Monitoring',
-      modules: 'Agronomic Analytics',
-      manage: 'Advisory & Usability',
-    },
-    items: [
-      { href: '/dashboard', label: 'Farms Cohort Overview', feature: null, icon: '⊞', section: 'main' },
-      { href: '/dashboard/farmers', label: 'Direktoryo ng Magsasaka', feature: null, icon: '👥', section: 'main' },
-      
-      { href: '/dashboard/nexus', label: 'Ingestion & Anomaly Audit', feature: 'DataFusion Nexus', icon: '⬡', section: 'modules' },
-      { href: '/dashboard/pulse', label: 'Multi-Farm Diagnostics', feature: 'AgriVision Pulse', icon: '◈', section: 'modules' },
-      { href: '/dashboard/oracle', label: 'What-If ML Simulation', feature: 'CropCast Oracle', icon: '◉', section: 'modules' },
-      { href: '/dashboard/strategist', label: 'Prescription Builder', feature: 'OptiFarm Strategist', icon: '◆', section: 'modules' },
-      { href: '/dashboard/conduit', label: 'Broadcast Dispatcher', feature: 'MultiSense Conduit', icon: '◎', section: 'modules', alertKey: true },
-      
-      { href: '/dashboard/farm', label: 'Geospatial Farm Directory', feature: null, icon: '⌂', section: 'manage' },
-      { href: '/dashboard/feedback', label: 'SUS Usability Results', feature: null, icon: '📊', section: 'manage' },
-    ],
-  },
-
-  admin: {
-    roleLabel: 'System Administrator',
-    roleTag: '⚙️ ADMIN CONTROL',
-    sectionLabels: {
-      main: 'Operations & Access',
-      modules: 'Core Pipeline Engines',
-      manage: 'Infrastructure & Audits',
-    },
-    items: [
-      { href: '/dashboard', label: 'System Control Room', feature: null, icon: '⊞', section: 'main' },
-      { href: '/dashboard/farmers', label: 'Users & Access Control', feature: null, icon: '👥', section: 'main' },
-      
-      { href: '/dashboard/nexus', label: 'Pipeline & MQTT Telemetry', feature: 'DataFusion Nexus', icon: '⬡', section: 'modules' },
-      { href: '/dashboard/pulse', label: 'Sampling & Calibration', feature: 'AgriVision Pulse', icon: '◈', section: 'modules' },
-      { href: '/dashboard/oracle', label: 'Model Registry & Retrain', feature: 'CropCast Oracle', icon: '◉', section: 'modules' },
-      { href: '/dashboard/strategist', label: 'Prescriptive Rule Engine', feature: 'OptiFarm Strategist', icon: '◆', section: 'modules' },
-      { href: '/dashboard/conduit', label: 'SMS Gateway & Telco DPA', feature: 'MultiSense Conduit', icon: '◎', section: 'modules', alertKey: true },
-      
-      { href: '/dashboard/farm', label: 'Node Hardware Registry', feature: null, icon: '⌂', section: 'manage' },
-      { href: '/dashboard/feedback', label: 'SUS Research Exports', feature: null, icon: '📊', section: 'manage' },
-    ],
-  },
-};
-
-const PAGE_TITLES = {
-  '/dashboard': {
-    farmer: { title: 'Aking Bukid (Overview)', sub: 'Status at Buod ng Dela Cruz Cornfield' },
-    expert: { title: 'Farms Cohort Overview', sub: 'Monitoring 2 Pilot Farms in Tupi, South Cotabato' },
-    admin:  { title: 'System Control Room', sub: 'Full Infrastructure Health & Microservices' },
-  },
-  '/dashboard/nexus': {
-    farmer: { title: 'Koneksyon sa Sensors (DataFusion Nexus)', sub: 'Status ng IoT Sensors, PAGASA, at Presyo sa Merkado' },
-    expert: { title: 'Ingestion & Anomaly Audit (DataFusion Nexus)', sub: 'Cross-Farm Telemetry Validation & Anomaly Triage' },
-    admin:  { title: 'Pipeline & MQTT Telemetry (DataFusion Nexus)', sub: 'MQTT Port 8883, TimescaleDB Storage & Ingestion DAG' },
-  },
-  '/dashboard/pulse': {
-    farmer: { title: 'Kalagayan ng Lupa & Ulan (AgriVision Pulse)', sub: 'Halumigmig, NPK Pataba, at Ulat Panahon' },
-    expert: { title: 'Multi-Farm Descriptive Diagnostics (AgriVision Pulse)', sub: 'F1 vs F2 vs Baseline Soil Chemistry & Evapotranspiration' },
-    admin:  { title: 'Sampling & Sensor Calibration (AgriVision Pulse)', sub: 'Sensor Polling Intervals, Calibration Offsets & CSV Export' },
-  },
-  '/dashboard/oracle': {
-    farmer: { title: 'Pagtantiya sa Ani & Peste (CropCast Oracle)', sub: 'AI Forecast sa Dami ng Ani at Hakbang Laban sa Uod' },
-    expert: { title: 'What-If ML Simulation Sandbox (CropCast Oracle)', sub: 'Climate Stress Sliders, XGB-LSTM Metrics & Feature Weights' },
-    admin:  { title: 'Model Registry & Drift Telemetry (CropCast Oracle)', sub: 'Algorithm Versioning, Latency & Automated Model Retraining' },
-  },
-  '/dashboard/strategist': {
-    farmer: { title: 'Mga Payo at Hakbang sa Bukid (OptiFarm Strategist)', sub: 'Mga Hakbang upang Makatipid at Mapalaki ang Ani' },
-    expert: { title: 'Agronomic Prescription Builder (OptiFarm Strategist)', sub: 'Formulate Chemical/Fertilizer Prescriptions & Review Queue' },
-    admin:  { title: 'Prescriptive Rule Engine (OptiFarm Strategist)', sub: 'IF-THEN Decision Trees, ROI Analytics & Policy Compliance' },
-  },
-  '/dashboard/conduit': {
-    farmer: { title: 'Mga Alerto at Mensahe (MultiSense Conduit)', sub: 'Visual, Audio Voice, at SMS Notifications sa Cellphone' },
-    expert: { title: 'Emergency Broadcast Dispatcher (MultiSense Conduit)', sub: 'Dispatch SMS Blasts & In-App Advisories to 30 Enrolled Farmers' },
-    admin:  { title: 'SMS Gateway & Telco Infrastructure (MultiSense Conduit)', sub: 'Semaphore Credits, Delivery Rates & RA 10173 DPA Audit' },
-  },
-  '/dashboard/farm': {
-    farmer: { title: 'Profile ng Aking Lupa', sub: 'Dela Cruz Cornfield GPS Plot & IoT Node Readings' },
-    expert: { title: 'Geospatial Farm Directory', sub: 'PostGIS GIS Plots & Live Node Telemetry per Farm' },
-    admin:  { title: 'Node Hardware & Farm Registry', sub: 'Hardware ID, Battery Levels & Plot Boundary Records' },
-  },
-  '/dashboard/feedback': {
-    farmer: { title: 'Pagsusuri / Feedback (SUS)', sub: 'Sagutan ang 10-Question Usability Scale Form' },
-    expert: { title: 'SUS Usability Results & Analytics', sub: 'Usability Evaluation Scores & Pilot Feedback Records' },
-    admin:  { title: 'SUS Research Evaluation & Data Exports', sub: 'Aggregated Usability Metrics for IT ELEC 4 Research Study' },
-  },
-  '/dashboard/farmers': {
-    expert: { title: 'Direktoryo ng mga Magsasaka', sub: 'All Registered Farmers & Farm Holdings in Tupi, South Cotabato' },
-    admin:  { title: 'User & Access Management', sub: 'Role-Based Access Control (RBAC) & User Accounts' },
-  },
-};
-
-const ROLE_COLORS = { farmer: '#52b788', expert: '#3b82f6', admin: '#f4a261' };
+import LanguageToggle from '@/components/LanguageToggle';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { lang, t } = useLanguage();
   const [user, setUser] = useState(null);
-  const [unreadAlerts, setUnreadAlerts] = useState(0);
+  const [unreadAlerts, setUnreadAlerts] = useState(2);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
+    const raw = localStorage.getItem('agri_user');
     const token = localStorage.getItem('agri_token');
-    const storedUser = localStorage.getItem('agri_user');
-    if (!token) { router.replace('/login'); return; }
-    if (storedUser) setUser(JSON.parse(storedUser));
-    getAlerts().then((d) => setUnreadAlerts(d.unread_count || 0)).catch(() => {});
+    if (!token || !raw) {
+      router.replace('/login');
+      return;
+    }
+    try {
+      setUser(JSON.parse(raw));
+    } catch {
+      router.replace('/login');
+    }
+    getAlerts()
+      .then((arr) => {
+        if (Array.isArray(arr)) {
+          setUnreadAlerts(arr.filter((a) => !a.read).length);
+        }
+      })
+      .catch(() => {});
   }, [router]);
 
   function handleLogout() {
     localStorage.removeItem('agri_token');
     localStorage.removeItem('agri_user');
-    router.replace('/login');
+    router.push('/login');
   }
 
   const role = user?.role || 'farmer';
-  const roleConfig = ROLE_NAV_CONFIG[role] || ROLE_NAV_CONFIG.farmer;
+
+  // Dynamic Navigation definitions based on Language (English / Tagalog)
+  const navConfigs = {
+    farmer: {
+      roleLabel: lang === 'tl' ? 'Magsasaka / Farmer' : 'Farmer / Kasama',
+      roleTag: lang === 'tl' ? '🌽 TINGIN NG MAGSASAKA' : '🌽 FARMER VIEW',
+      sectionLabels: {
+        main: t('section_main'),
+        modules: t('section_modules'),
+        manage: t('section_manage'),
+      },
+      items: [
+        { href: '/dashboard', label: lang === 'tl' ? 'Aking Bukid (Overview)' : 'My Farm Overview', feature: null, icon: '⊞', section: 'main' },
+        { href: '/dashboard/nexus', label: lang === 'tl' ? 'Koneksyon sa Sensors' : 'Sensor Connectivity', feature: 'DataFusion Nexus', icon: '⬡', section: 'modules' },
+        { href: '/dashboard/pulse', label: lang === 'tl' ? 'Kalagayan ng Lupa & Ulan' : 'Soil & Weather Diagnostics', feature: 'AgriVision Pulse', icon: '◈', section: 'modules' },
+        { href: '/dashboard/oracle', label: lang === 'tl' ? 'Pagtantiya sa Ani & Peste' : 'Crop & Pest Forecasts', feature: 'CropCast Oracle', icon: '◉', section: 'modules' },
+        { href: '/dashboard/strategist', label: lang === 'tl' ? 'Mga Payo at Hakbang' : 'Prescriptive Actions', feature: 'OptiFarm Strategist', icon: '◆', section: 'modules' },
+        { href: '/dashboard/conduit', label: lang === 'tl' ? 'Mga Alerto at Mensahe' : 'Alerts & Messages', feature: 'MultiSense Conduit', icon: '◎', section: 'modules', alertKey: true },
+        { href: '/dashboard/farm', label: lang === 'tl' ? 'Profile ng Aking Lupa' : 'Farm Plot Profile', feature: null, icon: '⌂', section: 'manage' },
+        { href: '/dashboard/feedback', label: lang === 'tl' ? 'Pagsusuri / Feedback (SUS)' : 'SUS Usability Survey', feature: null, icon: '✦', section: 'manage' },
+      ],
+    },
+    expert: {
+      roleLabel: lang === 'tl' ? 'Eksperto sa Agrikultura' : 'Agri Expert (Dr. Reyes)',
+      roleTag: lang === 'tl' ? '🔬 TINGIN NG EKSPERTO' : '🔬 AGRI EXPERT VIEW',
+      sectionLabels: {
+        main: lang === 'tl' ? 'Pagsubaybay sa Cohort' : 'Cohort Monitoring',
+        modules: lang === 'tl' ? 'Agronomic Analytics' : 'Agronomic Analytics',
+        manage: lang === 'tl' ? 'Payo at Pagsusuri' : 'Advisory & Usability',
+      },
+      items: [
+        { href: '/dashboard', label: lang === 'tl' ? 'Pangkalahatang Tanaw sa Bukid' : 'Farms Cohort Overview', feature: null, icon: '⊞', section: 'main' },
+        { href: '/dashboard/farmers', label: lang === 'tl' ? 'Direktoryo ng Magsasaka' : 'Farmer Directory', feature: null, icon: '👥', section: 'main' },
+        { href: '/dashboard/nexus', label: lang === 'tl' ? 'Pagsusuri ng Sensor Ingestion' : 'Ingestion & Anomaly Audit', feature: 'DataFusion Nexus', icon: '⬡', section: 'modules' },
+        { href: '/dashboard/pulse', label: lang === 'tl' ? 'Multi-Farm Diagnostics' : 'Multi-Farm Diagnostics', feature: 'AgriVision Pulse', icon: '◈', section: 'modules' },
+        { href: '/dashboard/oracle', label: lang === 'tl' ? 'What-If ML Simulation' : 'What-If ML Simulation', feature: 'CropCast Oracle', icon: '◉', section: 'modules' },
+        { href: '/dashboard/strategist', label: lang === 'tl' ? 'Tagagawa ng Reseta / Payo' : 'Prescription Builder', feature: 'OptiFarm Strategist', icon: '◆', section: 'modules' },
+        { href: '/dashboard/conduit', label: lang === 'tl' ? 'Tagapagpadala ng Broadcast' : 'Broadcast Dispatcher', feature: 'MultiSense Conduit', icon: '◎', section: 'modules', alertKey: true },
+        { href: '/dashboard/farm', label: lang === 'tl' ? 'Geospatial Farm Directory' : 'Geospatial Farm Directory', feature: null, icon: '⌂', section: 'manage' },
+        { href: '/dashboard/feedback', label: lang === 'tl' ? 'Resulta ng SUS Usability' : 'SUS Usability Results', feature: null, icon: '📊', section: 'manage' },
+      ],
+    },
+    admin: {
+      roleLabel: lang === 'tl' ? 'Tagapangasiwa ng Sistema' : 'System Administrator',
+      roleTag: lang === 'tl' ? '⚙️ KONTROL NG ADMIN' : '⚙️ ADMIN CONTROL',
+      sectionLabels: {
+        main: lang === 'tl' ? 'Operasyon at Akses' : 'Operations & Access',
+        modules: lang === 'tl' ? 'Mga Core Pipeline Engine' : 'Core Pipeline Engines',
+        manage: lang === 'tl' ? 'Impraestruktura at Audit' : 'Infrastructure & Audits',
+      },
+      items: [
+        { href: '/dashboard', label: lang === 'tl' ? 'Kontrol ng Sistema' : 'System Operations Control', feature: null, icon: '⊞', section: 'main' },
+        { href: '/dashboard/farmers', label: lang === 'tl' ? 'Pamamahala ng mga Gumagamit' : 'User Access & Farmers', feature: null, icon: '👥', section: 'main' },
+        { href: '/dashboard/nexus', label: lang === 'tl' ? 'Pipeline Telemetry & Broker' : 'Pipeline Telemetry & Broker', feature: 'DataFusion Nexus', icon: '⬡', section: 'modules' },
+        { href: '/dashboard/pulse', label: lang === 'tl' ? 'Kalusugan ng IoT Sensor Nodes' : 'IoT Hardware Diagnostics', feature: 'AgriVision Pulse', icon: '◈', section: 'modules' },
+        { href: '/dashboard/oracle', label: lang === 'tl' ? 'Pamamahala ng ML Models' : 'Model Registry & Drift', feature: 'CropCast Oracle', icon: '◉', section: 'modules' },
+        { href: '/dashboard/strategist', label: lang === 'tl' ? 'Makina ng Desisyon (Analytics)' : 'Prescription Rules Engine', feature: 'OptiFarm Strategist', icon: '◆', section: 'modules' },
+        { href: '/dashboard/conduit', label: lang === 'tl' ? 'Log ng Pagpapadala ng Alerto' : 'Gateway SMS / Push Audit', feature: 'MultiSense Conduit', icon: '◎', section: 'modules', alertKey: true },
+        { href: '/dashboard/farm', label: lang === 'tl' ? 'Geospatial GIS Boundaries' : 'Geospatial GIS Boundaries', feature: null, icon: '⌂', section: 'manage' },
+        { href: '/dashboard/feedback', label: lang === 'tl' ? 'Buong Tala ng SUS Evaluation' : 'SUS Evaluation Logs', feature: null, icon: '📊', section: 'manage' },
+      ],
+    },
+  };
+
+  const roleConfig = navConfigs[role] || navConfigs.farmer;
   const navItems = roleConfig.items;
   const sectionLabels = roleConfig.sectionLabels;
-  const roleColor = ROLE_COLORS[role] || ROLE_COLORS.farmer;
 
-  const pageInfoObj = PAGE_TITLES[pathname];
-  const pageInfo = pageInfoObj
-    ? (pageInfoObj[role] || pageInfoObj.farmer || { title: 'Dashboard', sub: '' })
-    : { title: 'Dashboard', sub: '' };
+  const roleColor =
+    role === 'admin'
+      ? '#f4a261'
+      : role === 'expert'
+      ? '#60a5fa'
+      : '#52b788';
+
+  const PAGE_HEADINGS = {
+    '/dashboard': {
+      title: lang === 'tl' ? 'Aking Bukid (Overview)' : 'My Farm Overview',
+      sub: lang === 'tl' ? 'Katayuan at Buod ng Dela Cruz Cornfield' : 'Status and Summary for Dela Cruz Cornfield',
+    },
+    '/dashboard/nexus': {
+      title: lang === 'tl' ? 'Koneksyon sa Sensors (DataFusion Nexus)' : 'Sensor Connectivity (DataFusion Nexus)',
+      sub: lang === 'tl' ? 'Status ng IoT Sensors, PAGASA, at Presyo sa Merkado' : 'Real-time telemetry from IoT, PAGASA, and DA feeds',
+    },
+    '/dashboard/pulse': {
+      title: lang === 'tl' ? 'Kalagayan ng Lupa & Ulan (AgriVision Pulse)' : 'Soil & Weather Diagnostics (AgriVision Pulse)',
+      sub: lang === 'tl' ? 'Pagsusuri ng halumigmig, ulan, at sustansya sa lupa' : 'Soil moisture, rainfall patterns, and NPK nutrients',
+    },
+    '/dashboard/oracle': {
+      title: lang === 'tl' ? 'Pagtantiya sa Ani & Peste (CropCast Oracle)' : 'Crop Yield & Pest Forecasts (CropCast Oracle)',
+      sub: lang === 'tl' ? 'Pagtantiya gamit ang Machine Learning at AI' : 'Predictive models for yield projection and pest outbreak risks',
+    },
+    '/dashboard/strategist': {
+      title: lang === 'tl' ? 'Mga Payo at Hakbang (OptiFarm Strategist)' : 'Prescriptive Action Plans (OptiFarm Strategist)',
+      sub: lang === 'tl' ? 'Matalinong payo sa pagpapataba, patubig, at pananim' : 'Prescriptive optimization for fertilizer, water, and harvesting',
+    },
+    '/dashboard/conduit': {
+      title: lang === 'tl' ? 'Mga Alerto at Mensahe (MultiSense Conduit)' : 'Alerts & Messages (MultiSense Conduit)',
+      sub: lang === 'tl' ? 'Multi-modal na paghahatid ng balita sa bukid' : 'Multi-modal broadcasts across Visual, Voice Audio, and SMS',
+    },
+    '/dashboard/farm': {
+      title: lang === 'tl' ? 'Profile ng Aking Lupa' : 'Farm Plot Profile & GIS Mapping',
+      sub: lang === 'tl' ? 'Sukat, tanim, at coordinate sa Tupi, South Cotabato' : 'Land parcels, crops, and elevation in Tupi, South Cotabato',
+    },
+    '/dashboard/farmers': {
+      title: lang === 'tl' ? 'Direktoryo ng mga Magsasaka' : 'Farmer Directory & Cohort Management',
+      sub: lang === 'tl' ? 'Talaan ng mga magsasaka at sakahan sa Tupi pilot program' : 'Enrolled pilot farmers and geospatial parcels in Tupi',
+    },
+    '/dashboard/feedback': {
+      title: lang === 'tl' ? 'Pagsusuri ng Sistema (SUS Usability)' : 'System Usability Scale (SUS) Evaluation',
+      sub: lang === 'tl' ? 'Pamantayang pagsusuri ng dali ng paggamit ng AgriInsights' : 'Standardized Brooke (1996) SUS usability evaluation questionnaire',
+    },
+  };
+
+  const pageInfo = PAGE_HEADINGS[pathname] || {
+    title: 'AgriInsights',
+    sub: 'Multi-Modal Agricultural Analytics',
+  };
 
   return (
     <div className="app-shell">
       {/* ── Sidebar ──────────────────────────────────────────────── */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+        {/* Brand */}
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">🌾</div>
-          <div>
+          <div className="sidebar-logo-text-wrap">
             <div className="sidebar-logo-text">AgriInsights</div>
             <div className="sidebar-logo-sub">SEAIT · IT ELEC 4</div>
           </div>
         </div>
 
-        {/* Role Badge */}
-        <div style={{ padding: '10px 16px 6px' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '4px 10px',
-            background: `${roleColor}15`,
-            border: `1px solid ${roleColor}40`,
-            borderRadius: 'var(--radius-full)',
-            fontSize: 10.5,
-            fontWeight: 700,
-            color: roleColor,
-            letterSpacing: '0.6px',
-            textTransform: 'uppercase',
-            width: '100%',
-            justifyContent: 'center',
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: roleColor, display: 'inline-block' }} />
-            {roleConfig.roleTag}
+        {/* Role Badge Indicator */}
+        <div style={{ padding: '10px 16px 4px' }}>
+          <div
+            style={{
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-md)',
+              background: `linear-gradient(135deg, ${roleColor}22, ${roleColor}0a)`,
+              border: `1px solid ${roleColor}44`,
+              fontSize: '11px',
+              fontWeight: 700,
+              color: roleColor,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              letterSpacing: '0.4px',
+            }}
+          >
+            <span>{roleConfig.roleTag}</span>
           </div>
         </div>
 
+        {/* Nav Links */}
         <nav className="sidebar-nav">
           {/* Main section */}
           <div className="sidebar-section-label">{sectionLabels.main}</div>
@@ -199,7 +206,7 @@ export default function DashboardLayout({ children }) {
               <Link
                 key={item.href}
                 href={item.href}
-                id={`nav-${item.href.replace(/\//g, '-').slice(1) || 'home'}`}
+                id={`nav-${item.href.replace(/\//g, '-').slice(1) || 'overview'}`}
                 className={`nav-item ${isActive ? 'active' : ''}`}
               >
                 <span style={{ fontSize: '16px', width: 22, textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
@@ -258,13 +265,13 @@ export default function DashboardLayout({ children }) {
         {/* User Chip */}
         {user && (
           <div className="sidebar-footer">
-            <div className="user-chip" onClick={handleLogout} title="Click to logout" id="logout-btn">
+            <div className="user-chip" onClick={handleLogout} title={lang === 'tl' ? 'Pindutin para mag-sign out' : 'Click to sign out'} id="logout-btn">
               <div className="user-avatar" style={{ background: `linear-gradient(135deg, ${roleColor}, ${roleColor}99)` }}>
                 {user.avatar_initials || user.name?.[0]}
               </div>
               <div className="user-info">
                 <div className="user-name">{user.name}</div>
-                <div className="user-role">{roleConfig.roleLabel} · Sign out</div>
+                <div className="user-role">{roleConfig.roleLabel} · {t('sign_out')}</div>
               </div>
             </div>
           </div>
@@ -278,7 +285,10 @@ export default function DashboardLayout({ children }) {
           <div className="topbar-breadcrumb">{pageInfo.sub}</div>
         </div>
         <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 4 }}>Tupi, South Cotabato</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 4 }}>{t('location')}</div>
+          {/* Dual Language Switcher */}
+          <LanguageToggle />
+          {/* Theme Mode Toggle */}
           <ThemeToggle />
           <Link href="/dashboard/conduit" id="alerts-topbar-btn" className="topbar-btn" title="Alerts">
             <span>🔔</span>

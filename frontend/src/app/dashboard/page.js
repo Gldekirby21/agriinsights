@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { getDescriptiveAnalytics, getAlerts, getRecommendations, getForecasts, getFarmers, getFarms } from '@/lib/api';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 
 function AnimatedCounter({ target, suffix = '' }) {
   const [value, setValue] = useState(0);
@@ -33,6 +34,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 // ─── FARMER VIEW ──────────────────────────────────────────────────────────────
 function FarmerOverview({ user }) {
+  const { lang, t } = useLanguage();
   const [analytics, setAnalytics] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [recs, setRecs] = useState(null);
@@ -45,26 +47,34 @@ function FarmerOverview({ user }) {
       .catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="loading-center"><div className="loading-spinner" /><p>Loading your farm data...</p></div>;
+  if (loading) return <div className="loading-center"><div className="loading-spinner" /><p>{lang === 'tl' ? 'Kinakarga ang datos ng bukid...' : 'Loading your farm data...'}</p></div>;
 
   const weatherData = analytics?.weather_series?.slice(-14) || [];
   const yieldForecast = forecasts?.yield_projection_14d || [];
   const sevIcon = { critical: '🔴', warning: '🟡', info: '🔵', success: '🟢' };
 
+  const greeting = lang === 'tl'
+    ? `Magandang ${new Date().getHours() < 12 ? 'umaga' : new Date().getHours() < 18 ? 'hapon' : 'gabi'}, ${user?.name?.split(' ')[0]} 👋`
+    : `Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, ${user?.name?.split(' ')[0]} 👋`;
+
+  const subtitle = lang === 'tl'
+    ? `Ito ang pinakabagong lagay sa Dela Cruz Cornfield ngayong araw · ${new Date().toLocaleDateString('tl-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
+    : `Here's what's happening at Dela Cruz Cornfield today · ${new Date().toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
-        <h1 className="page-title">Good {new Date().getHours() < 12 ? 'morning' : 'afternoon'}, {user?.name?.split(' ')[0]} 👋</h1>
-        <p className="page-subtitle">Here's what's happening at <strong style={{ color: 'var(--primary)' }}>Dela Cruz Cornfield</strong> today · {new Date().toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <h1 className="page-title">{greeting}</h1>
+        <p className="page-subtitle">{subtitle}</p>
       </div>
       <div className="stat-cards-grid">
         {[
-          { icon: '🌡️', label: 'Current Temp', value: `${Math.round(analytics?.latest_weather?.temperature || 29)}°C`, sub: '↑ +0.8° vs yesterday', color: 'green', subColor: 'var(--success)' },
-          { icon: '🌧️', label: '30-Day Rainfall', value: `${Math.round(analytics?.summary?.total_rainfall_30d_mm || 0)}mm`, sub: '↑ Above average', color: 'amber', subColor: 'var(--success)' },
-          { icon: '💧', label: 'Soil Moisture', value: `${Math.round(analytics?.latest_soil?.moisture || 62)}%`, sub: '↓ Slightly high', color: 'green', subColor: 'var(--warning)' },
-          { icon: '🌽', label: 'Yield Forecast', value: '4.2 t/ha', sub: '82% confidence', color: 'amber', subColor: 'var(--success)' },
-          { icon: '🐛', label: 'Pest Risk', value: '68%', sub: '⚠ Moderate–High', color: 'danger', subColor: 'var(--warning)' },
-          { icon: '💡', label: 'Pending Actions', value: String(recs?.summary?.total || 4), sub: `${recs?.summary?.urgent || 1} urgent`, color: 'info', subColor: 'var(--danger)' },
+          { icon: '🌡️', label: t('current_temp'), value: `${Math.round(analytics?.latest_weather?.temperature || 29)}°C`, sub: lang === 'tl' ? '↑ +0.8° vs kahapon' : '↑ +0.8° vs yesterday', color: 'green', subColor: 'var(--success)' },
+          { icon: '🌧️', label: t('rainfall_30d'), value: `${Math.round(analytics?.summary?.total_rainfall_30d_mm || 0)}mm`, sub: lang === 'tl' ? '↑ Mas mataas sa normal' : '↑ Above average', color: 'amber', subColor: 'var(--success)' },
+          { icon: '💧', label: t('soil_moisture'), value: `${Math.round(analytics?.latest_soil?.moisture || 62)}%`, sub: lang === 'tl' ? '↓ Medyo mataas ang basa' : '↓ Slightly high', color: 'green', subColor: 'var(--warning)' },
+          { icon: '🌽', label: t('yield_forecast'), value: '4.2 t/ha', sub: `82% ${t('confidence')}`, color: 'amber', subColor: 'var(--success)' },
+          { icon: '🐛', label: t('pest_risk'), value: '68%', sub: `⚠ ${t('moderate_high')}`, color: 'danger', subColor: 'var(--warning)' },
+          { icon: '💡', label: t('pending_actions'), value: String(recs?.summary?.total || 4), sub: `${recs?.summary?.urgent || 1} ${t('urgent')}`, color: 'info', subColor: 'var(--danger)' },
         ].map((s) => (
           <div key={s.label} className={`stat-card ${s.color}`}>
             <div className={`stat-icon ${s.color}`}>{s.icon}</div>
@@ -76,7 +86,7 @@ function FarmerOverview({ user }) {
       </div>
       <div className="charts-grid">
         <div className="card">
-          <div className="card-header"><div><div className="card-title">Temperature — 14 Days</div><div className="card-subtitle">°C</div></div></div>
+          <div className="card-header"><div><div className="card-title">{t('temp_trend_14d')}</div><div className="card-subtitle">°C</div></div></div>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weatherData}>
@@ -91,7 +101,7 @@ function FarmerOverview({ user }) {
           </div>
         </div>
         <div className="card">
-          <div className="card-header"><div><div className="card-title">Yield Forecast — 14 Days</div><div className="card-subtitle">t/ha · Corn</div></div></div>
+          <div className="card-header"><div><div className="card-title">{t('yield_trend_14d')}</div><div className="card-subtitle">t/ha · Corn</div></div></div>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={yieldForecast}>
@@ -108,7 +118,7 @@ function FarmerOverview({ user }) {
       </div>
       <div className="grid-2">
         <div className="card">
-          <div className="card-header"><div className="card-title">Recent Alerts</div><Link href="/dashboard/conduit" className="btn btn-secondary btn-xs">View All</Link></div>
+          <div className="card-header"><div className="card-title">{t('recent_alerts')}</div><Link href="/dashboard/conduit" className="btn btn-secondary btn-xs">{t('view_all')}</Link></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {alerts.map((a) => (
               <div key={a.alert_id} className={`alert-item ${a.read ? '' : 'unread'} ${a.severity}`}>
@@ -123,12 +133,12 @@ function FarmerOverview({ user }) {
           </div>
         </div>
         <div className="card">
-          <div className="card-header"><div className="card-title">Priority Action</div><Link href="/dashboard/strategist" className="btn btn-secondary btn-xs">All Recs</Link></div>
+          <div className="card-header"><div className="card-title">{t('priority_action')}</div><Link href="/dashboard/strategist" className="btn btn-secondary btn-xs">{t('all_recs')}</Link></div>
           <div className="rec-card urgent" style={{ borderRadius: 'var(--radius-md)' }}>
-            <div className="rec-header"><span style={{ fontSize: 20 }}>🐛</span><span className="badge badge-danger">Urgent</span></div>
-            <div className="rec-title">Apply Fall Armyworm Treatment</div>
-            <div className="rec-desc">High pest risk detected. Apply treatment in the next 48 hours on early-whorl corn plants.</div>
-            <div className="rec-footer"><span className="rec-cost">Cost: ~₱850</span><span className="rec-benefit">Prevent ~0.8 t/ha loss</span></div>
+            <div className="rec-header"><span style={{ fontSize: 20 }}>🐛</span><span className="badge badge-danger">{lang === 'tl' ? 'Kagyat' : 'Urgent'}</span></div>
+            <div className="rec-title">{lang === 'tl' ? 'Magbomba ng Gamot Laban sa Fall Armyworm' : 'Apply Fall Armyworm Treatment'}</div>
+            <div className="rec-desc">{lang === 'tl' ? 'Mataas ang banta ng peste. Magbomba sa susunod na 48 oras sa murang dahon ng mais.' : 'High pest risk detected. Apply treatment in the next 48 hours on early-whorl corn plants.'}</div>
+            <div className="rec-footer"><span className="rec-cost">{lang === 'tl' ? 'Gastos: ~₱850' : 'Cost: ~₱850'}</span><span className="rec-benefit">{lang === 'tl' ? 'Maiwasan ang ~0.8 t/ha pagkalugi' : 'Prevent ~0.8 t/ha loss'}</span></div>
           </div>
         </div>
       </div>
