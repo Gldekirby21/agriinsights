@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { getDescriptiveAnalytics, getPulseComparison } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
+import WeatherAnimatedIcon from '@/components/WeatherAnimatedIcon';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, ReferenceLine
@@ -60,11 +61,14 @@ function FarmerPulse({ data, user }) {
         </div>
       </div>
 
-      {/* Live Weather Station Banner */}
+      {/* Live Weather Station Banner with Dynamic Animated Icon */}
       <div className="card mb-lg" style={{ background: 'linear-gradient(135deg, rgba(14,30,23,0.95), rgba(59,130,246,0.12))', border: '1px solid rgba(59,130,246,0.3)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span className="anim-sun" style={{ fontSize: 36 }}>🌤️</span>
+            <WeatherAnimatedIcon
+              condition={latestWeather.rainfall_mm > 15 ? 'heavy_rain' : latestWeather.rainfall_mm > 0 ? 'rain' : latestWeather.temperature > 31 ? 'sunny' : 'partly_cloudy'}
+              size={54}
+            />
             <div>
               <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span>{lang === 'tl' ? 'PAGASA Doppler / WMO Station 98753 (Tupi, South Cotabato)' : 'PAGASA Doppler / WMO Station 98753 (Tupi, South Cotabato)'}</span>
@@ -81,6 +85,28 @@ function FarmerPulse({ data, user }) {
             Auto-Sync: {new Date().toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>
+
+        {/* 7-Day Dynamic Animated Forecast Grid */}
+        {dailyForecast.length > 0 && (
+          <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: `repeat(${Math.min(dailyForecast.length, 7)}, 1fr)`, gap: 8 }}>
+            {dailyForecast.slice(0, 7).map((d, idx) => {
+              const cond = d.rainfall_mm > 10 ? 'heavy_rain' : d.rainfall_mm > 2 ? 'rain' : d.temp_max > 31 ? 'sunny' : 'partly_cloudy';
+              const dayName = new Date(d.date).toLocaleDateString(lang === 'tl' ? 'tl-PH' : 'en-PH', { weekday: 'short' });
+              return (
+                <div key={d.date} style={{ textAlign: 'center', padding: '8px 4px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>{dayName}</div>
+                  <div style={{ margin: '4px 0' }}>
+                    <WeatherAnimatedIcon condition={cond} size={30} />
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{Math.round(d.temp_max)}°</div>
+                  <div style={{ fontSize: 10, color: d.rainfall_mm > 0 ? '#38bdf8' : 'var(--text-muted)' }}>
+                    {d.rainfall_mm > 0 ? `${d.rainfall_mm}mm` : '0mm'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Traffic-Light Style Health Cards */}

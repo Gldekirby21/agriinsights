@@ -1731,3 +1731,78 @@ a:hover {
 .anim-sun { display: inline-block; animation: sunGlow 12s linear infinite; }
 .anim-water { display: inline-block; animation: waterRipple 2.4s ease-in-out infinite; }
 .anim-temp { display: inline-block; animation: tempWarmth 2s ease-in-out infinite; }
+
+/* ─── SVG Dynamic Weather Icon Animations ───────────────────────────────────── */
+@keyframes sunSpin {
+  0% { transform: rotate(0deg); transform-origin: 32px 32px; }
+  100% { transform: rotate(360deg); transform-origin: 32px 32px; }
+}
+
+@keyframes sunPulseCore {
+  0%, 100% { transform: scale(1); transform-origin: 32px 32px; }
+  50% { transform: scale(1.08); transform-origin: 32px 32px; filter: drop-shadow(0 0 6px rgba(245,158,11,0.8)); }
+}
+
+@keyframes cloudDriftHoriz {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+@keyframes cloudFloatVert {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes rainDropLight {
+  0% { transform: translateY(-4px); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translateY(12px); opacity: 0; }
+}
+
+@keyframes rainDropHeavy {
+  0% { transform: translateY(-6px) translateX(2px); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(18px) translateX(-6px); opacity: 0; }
+}
+
+@keyframes lightningFlash {
+  0%, 90%, 100% { opacity: 0.1; transform: scale(0.95); }
+  92%, 96% { opacity: 1; transform: scale(1.08); filter: drop-shadow(0 0 10px #fbbf24); }
+  94% { opacity: 0.3; }
+}
+
+@keyframes fogFlow1 {
+  0%, 100% { transform: translateX(-3px); opacity: 0.6; }
+  50% { transform: translateX(3px); opacity: 0.9; }
+}
+
+@keyframes fogFlow2 {
+  0%, 100% { transform: translateX(3px); opacity: 0.8; }
+  50% { transform: translateX(-3px); opacity: 0.5; }
+}
+
+.weather-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+.weather-icon-wrap:hover {
+  transform: scale(1.1);
+}
+
+.anim-sun-rays { animation: sunSpin 24s linear infinite; }
+.anim-sun-pulse { animation: sunPulseCore 3s ease-in-out infinite; }
+.anim-cloud-drift { animation: cloudDriftHoriz 4s ease-in-out infinite; }
+.anim-cloud-float { animation: cloudFloatVert 3.2s ease-in-out infinite; }
+.anim-cloud-back { animation: cloudFloatVert 4s ease-in-out infinite reverse; }
+.anim-raindrops-light line { animation: rainDropLight 1.4s ease-in infinite; }
+.anim-raindrops-light line:nth-child(2) { animation-delay: 0.4s; }
+.anim-raindrops-light line:nth-child(3) { animation-delay: 0.8s; }
+.anim-raindrops-heavy line { animation: rainDropHeavy 0.9s linear infinite; }
+.anim-raindrops-heavy line:nth-child(2) { animation-delay: 0.25s; }
+.anim-raindrops-heavy line:nth-child(3) { animation-delay: 0.5s; }
+.anim-raindrops-heavy line:nth-child(4) { animation-delay: 0.7s; }
+.anim-lightning { animation: lightningFlash 3.5s infinite; }
+.anim-fog-1 { animation: fogFlow1 4s ease-in-out infinite; }
+.anim-fog-2 { animation: fogFlow2 4s ease-in-out infinite; }
