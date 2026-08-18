@@ -3,19 +3,25 @@ const path = require('path');
 
 const rootDir = __dirname;
 const isWindows = process.platform === 'win32';
-const npmCmd = isWindows ? 'npm.cmd' : 'npm';
 
 console.log('🌾 Starting AgriInsights Backend (port 5000) and Frontend (port 3000)...\n');
 
-const backend = spawn(npmCmd, ['run', 'dev'], {
-  cwd: path.join(rootDir, 'backend'),
-  stdio: 'inherit',
-});
+function runService(dir) {
+  const cwd = path.join(rootDir, dir);
+  if (isWindows) {
+    return spawn('cmd.exe', ['/c', 'npm', 'run', 'dev'], {
+      cwd,
+      stdio: 'inherit',
+    });
+  }
+  return spawn('npm', ['run', 'dev'], {
+    cwd,
+    stdio: 'inherit',
+  });
+}
 
-const frontend = spawn(npmCmd, ['run', 'dev'], {
-  cwd: path.join(rootDir, 'frontend'),
-  stdio: 'inherit',
-});
+const backend = runService('backend');
+const frontend = runService('frontend');
 
 function cleanup() {
   try {
