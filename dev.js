@@ -10,13 +10,11 @@ console.log('🌾 Starting AgriInsights Backend (port 5000) and Frontend (port 3
 const backend = spawn(npmCmd, ['run', 'dev'], {
   cwd: path.join(rootDir, 'backend'),
   stdio: 'inherit',
-  shell: true,
 });
 
 const frontend = spawn(npmCmd, ['run', 'dev'], {
   cwd: path.join(rootDir, 'frontend'),
   stdio: 'inherit',
-  shell: true,
 });
 
 function cleanup() {
