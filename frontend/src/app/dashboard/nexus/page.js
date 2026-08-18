@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { getNexusData, getNexusLogs, getNexusTelemetry } from '@/lib/api';
+import WeatherAnimatedIcon from '@/components/WeatherAnimatedIcon';
 
 const STATUS_COLOR = { connected: 'var(--success)', partial: 'var(--warning)', offline: 'var(--danger)' };
 const LOG_COLOR    = { success: 'var(--success)', warning: 'var(--warning)', anomaly: 'var(--danger)', error: 'var(--danger)' };
@@ -72,13 +73,13 @@ function FarmerNexus({ data, user }) {
       {/* Simple Connection Cards */}
       <div className="grid-3 mb-lg">
         {[
-          { title: '🌱 IoT Sensors sa Lupa', desc: '3 sa 3 sensors ay may 100% signal', status: 'Online (Auto-Sync)', time: '5m ago', icon: '📡', color: 'green' },
-          { title: '🌦️ PAGASA Weather Station', desc: 'Tupi South Cotabato Doppler Feed', status: 'Live Connected', time: '15m ago', icon: '🌤️', color: 'green' },
-          { title: '💰 DA Presyo sa Palengke', desc: 'Region XII Corn & Commodity Feed', status: 'Auto-Updated', time: '1h ago', icon: '📈', color: 'green' },
+          { title: '🌱 IoT Sensors sa Lupa', desc: '3 sa 3 sensors ay may 100% signal', status: 'Online (Auto-Sync)', time: '5m ago', icon: <span style={{ fontSize: 26 }}>📡</span>, color: 'green' },
+          { title: '🌦️ PAGASA Weather Station', desc: 'Tupi South Cotabato Doppler Feed', status: 'Live Connected', time: '15m ago', icon: <WeatherAnimatedIcon condition="mostly_clear" size={34} />, color: 'green' },
+          { title: '💰 DA Presyo sa Palengke', desc: 'Region XII Corn & Commodity Feed', status: 'Auto-Updated', time: '1h ago', icon: <span style={{ fontSize: 26 }}>📈</span>, color: 'green' },
         ].map((c) => (
           <div key={c.title} className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-              <span style={{ fontSize: 26 }}>{c.icon}</span>
+              <div>{c.icon}</div>
               <span className="badge badge-success">● {c.status}</span>
             </div>
             <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 15 }}>{c.title}</div>

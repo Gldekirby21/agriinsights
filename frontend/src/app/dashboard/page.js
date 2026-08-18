@@ -4,6 +4,7 @@ import { getDescriptiveAnalytics, getAlerts, getRecommendations, getForecasts, g
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import WeatherAnimatedIcon from '@/components/WeatherAnimatedIcon';
 
 function AnimatedCounter({ target, suffix = '' }) {
   const [value, setValue] = useState(0);
@@ -69,15 +70,17 @@ function FarmerOverview({ user }) {
       </div>
       <div className="stat-cards-grid">
         {[
-          { icon: '🌡️', label: t('current_temp'), value: `${Math.round(analytics?.latest_weather?.temperature || 29)}°C`, sub: lang === 'tl' ? '↑ +0.8° vs kahapon' : '↑ +0.8° vs yesterday', color: 'green', subColor: 'var(--success)' },
-          { icon: '🌧️', label: t('rainfall_30d'), value: `${Math.round(analytics?.summary?.total_rainfall_30d_mm || 0)}mm`, sub: lang === 'tl' ? '↑ Mas mataas sa normal' : '↑ Above average', color: 'amber', subColor: 'var(--success)' },
+          { icon: <WeatherAnimatedIcon temperature={analytics?.latest_weather?.temperature || 29} size={36} />, label: t('current_temp'), value: `${Math.round(analytics?.latest_weather?.temperature || 29)}°C`, sub: lang === 'tl' ? '↑ +0.8° vs kahapon' : '↑ +0.8° vs yesterday', color: 'green', subColor: 'var(--success)' },
+          { icon: <WeatherAnimatedIcon condition="rain" size={36} />, label: t('rainfall_30d'), value: `${Math.round(analytics?.summary?.total_rainfall_30d_mm || 0)}mm`, sub: lang === 'tl' ? '↑ Mas mataas sa normal' : '↑ Above average', color: 'amber', subColor: 'var(--success)' },
           { icon: '💧', label: t('soil_moisture'), value: `${Math.round(analytics?.latest_soil?.moisture || 62)}%`, sub: lang === 'tl' ? '↓ Medyo mataas ang basa' : '↓ Slightly high', color: 'green', subColor: 'var(--warning)' },
           { icon: '🌽', label: t('yield_forecast'), value: '4.2 t/ha', sub: `82% ${t('confidence')}`, color: 'amber', subColor: 'var(--success)' },
           { icon: '🐛', label: t('pest_risk'), value: '68%', sub: `⚠ ${t('moderate_high')}`, color: 'danger', subColor: 'var(--warning)' },
           { icon: '💡', label: t('pending_actions'), value: String(recs?.summary?.total || 4), sub: `${recs?.summary?.urgent || 1} ${t('urgent')}`, color: 'info', subColor: 'var(--danger)' },
         ].map((s) => (
           <div key={s.label} className={`stat-card ${s.color}`}>
-            <div className={`stat-icon ${s.color}`}>{s.icon}</div>
+            <div className={`stat-icon ${s.color}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {typeof s.icon === 'string' ? <span style={{ fontSize: 22 }}>{s.icon}</span> : s.icon}
+            </div>
             <div className="stat-label">{s.label}</div>
             <div className="stat-value">{s.value}</div>
             <div className="stat-change" style={{ color: s.subColor }}>{s.sub}</div>
