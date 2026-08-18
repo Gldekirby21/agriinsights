@@ -188,7 +188,7 @@ function ExpertOracle({ data }) {
       </div>
 
       {/* What-If Simulation Sandbox */}
-      <div className="card mb-lg" style={{ border: '1px solid rgba(59,130,246,0.3)', background: 'linear-gradient(135deg, rgba(14,30,23,0.9), rgba(59,130,246,0.08))' }}>
+      <div className="card mb-lg" style={{ border: '1px solid rgba(59,130,246,0.3)', background: 'linear-gradient(135deg, var(--bg-card), rgba(59,130,246,0.08))' }}>
         <div className="card-header">
           <div>
             <div className="card-title">🧪 Agronomic "What-If" Scenario Simulation Sandbox</div>

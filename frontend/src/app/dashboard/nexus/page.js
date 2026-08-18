@@ -53,13 +53,13 @@ function FarmerNexus({ data, user }) {
       </div>
 
       {/* High Level Plain Status */}
-      <div className="card mb-lg" style={{ background: 'linear-gradient(135deg, rgba(18,32,25,0.9), rgba(82,183,136,0.1))', border: '1px solid var(--border-accent)' }}>
+      <div className="card mb-lg sync-banner">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-lg)', background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-lg)', background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>
             ✅
           </div>
           <div>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, color: 'var(--primary-light)' }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, color: 'var(--primary)' }}>
               Lahat ng Sensors at Feeds ay Awtomatikong Naka-Sync!
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>

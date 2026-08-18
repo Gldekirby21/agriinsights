@@ -21,6 +21,13 @@ async function apiFetch(path, options = {}) {
     },
   });
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('agri_token');
+      localStorage.removeItem('agri_user');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error || 'API request failed');
   }

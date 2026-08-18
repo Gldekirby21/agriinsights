@@ -180,7 +180,7 @@ function ExpertConduit({ alerts, smsList, onBroadcast }) {
 
       {/* Broadcast Composer */}
       {showBroadcast && (
-        <div className="card mb-lg" style={{ border: '1px solid rgba(59,130,246,0.4)', background: 'linear-gradient(135deg, rgba(14,30,23,0.95), rgba(59,130,246,0.08))' }}>
+        <div className="card mb-lg" style={{ border: '1px solid rgba(59,130,246,0.4)', background: 'linear-gradient(135deg, var(--bg-card), rgba(59,130,246,0.08))' }}>
           <div className="card-title" style={{ marginBottom: 14 }}>Compose Emergency Advisory Broadcast</div>
           <form onSubmit={handleSend}>
             <div className="grid-3 mb-md">

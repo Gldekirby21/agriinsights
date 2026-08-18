@@ -168,7 +168,7 @@ function ExpertStrategist({ recs, onStatusChange, onNewRec }) {
 
       {/* Prescription Builder Form */}
       {showForm && (
-        <div className="card mb-lg" style={{ border: '1px solid rgba(59,130,246,0.4)', background: 'linear-gradient(135deg, rgba(14,30,23,0.95), rgba(59,130,246,0.08))' }}>
+        <div className="card mb-lg" style={{ border: '1px solid rgba(59,130,246,0.4)', background: 'linear-gradient(135deg, var(--bg-card), rgba(59,130,246,0.08))' }}>
           <div className="card-title" style={{ marginBottom: 14 }}>New Agronomic Prescription Form</div>
           <form onSubmit={handleCreate}>
             <div className="grid-3 mb-md">

@@ -889,22 +889,54 @@ a:hover { color: var(--primary-light); }
 .animate-fade-up  { animation: fadeUp 0.4s ease both; }
 .pulse-dot { animation: pulse-dot 2s infinite; }
 
+/* ─── Sync Status Banner ─────────────────────────────────────────────────────── */
+.sync-banner {
+  background: linear-gradient(135deg, var(--bg-card), var(--primary-glow));
+  border: 1px solid var(--border-accent);
+}
+
 /* ─── SMS Preview ────────────────────────────────────────────────────────────── */
 .sms-card {
-  background: #1a2d24;
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 16px;
-  font-family: monospace;
+  font-family: var(--font-body);
   font-size: 13px;
   line-height: 1.5;
-  color: var(--green-300);
+  color: var(--text-primary);
   position: relative;
+  transition: var(--transition);
 }
 
-.sms-header { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
-.sms-body   { color: var(--text-primary); }
-.sms-time   { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: right; }
+.sms-card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
+}
+
+.sms-header { 
+  font-size: 12px; 
+  font-weight: 600; 
+  color: var(--primary); 
+  margin-bottom: 8px; 
+}
+
+.sms-body { 
+  color: var(--text-primary); 
+  background: var(--bg-card); 
+  padding: 12px 14px; 
+  border-radius: var(--radius-md); 
+  border: 1px solid var(--border);
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+.sms-time { 
+  font-size: 11px; 
+  color: var(--text-muted); 
+  margin-top: 8px; 
+  text-align: right; 
+}
 
 /* ─── Log Items ──────────────────────────────────────────────────────────────── */
 .log-item {
