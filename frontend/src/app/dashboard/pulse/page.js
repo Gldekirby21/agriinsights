@@ -109,50 +109,133 @@ function FarmerPulse({ data, user }) {
         )}
       </div>
 
-      {/* Traffic-Light Style Health Cards */}
+      {/* Traffic-Light Style Health Cards with Grid Layout */}
       <div className="grid-3 mb-lg">
-        <div className="card" style={{ borderTop: '4px solid var(--success)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span className="anim-water" style={{ fontSize: 28 }}>💧</span>
-            <span className="badge badge-success">✓ {lang === 'tl' ? 'Tama ang Basa' : 'Optimal Moisture'}</span>
+        <div
+          className="card"
+          style={{
+            borderTop: '4px solid var(--success)',
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            gridTemplateRows: 'auto auto auto',
+            gap: '6px 14px',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ gridColumn: '1', gridRow: '1', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="badge badge-success" style={{ fontSize: 11 }}>✓ {lang === 'tl' ? 'Tama ang Basa' : 'Optimal Moisture'}</span>
           </div>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 800, color: 'var(--primary-light)' }}>
-            {latestSoil.moisture}%
+          <div
+            style={{
+              gridColumn: '2',
+              gridRow: '1 / span 2',
+              width: 48,
+              height: 48,
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--primary-glow)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              justifySelf: 'end',
+              fontSize: 26,
+            }}
+          >
+            💧
           </div>
-          <div style={{ fontWeight: 700, marginTop: 4, marginBottom: 6 }}>{lang === 'tl' ? 'Tubig sa Lupa (Soil Moisture)' : 'Soil Moisture Level'}</div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+          <div style={{ gridColumn: '1', gridRow: '2' }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 30, fontWeight: 800, color: 'var(--primary-light)', lineHeight: 1.1 }}>
+              {latestSoil.moisture}%
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginTop: 2 }}>{lang === 'tl' ? 'Tubig sa Lupa (Soil Moisture)' : 'Soil Moisture Level'}</div>
+          </div>
+          <div style={{ gridColumn: '1 / span 2', gridRow: '3', fontSize: 12, color: 'var(--text-secondary)', paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             {lang === 'tl'
               ? 'Sapat ang halumigmig ng lupa para sa iyong mais. Huwag munang magpatubig upang makatipid sa tubig.'
               : 'Soil moisture is optimal for corn early growth. No additional irrigation is required today.'}
           </div>
         </div>
 
-        <div className="card" style={{ borderTop: '4px solid var(--warning)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 28 }}>⚗️</span>
-            <span className="badge badge-warning">⚠ {lang === 'tl' ? 'Kulang sa Pataba' : 'Low Potassium'}</span>
+        <div
+          className="card"
+          style={{
+            borderTop: '4px solid var(--warning)',
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            gridTemplateRows: 'auto auto auto',
+            gap: '6px 14px',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ gridColumn: '1', gridRow: '1', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="badge badge-warning" style={{ fontSize: 11 }}>⚠ {lang === 'tl' ? 'Kulang sa Pataba' : 'Low Potassium'}</span>
           </div>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 800, color: 'var(--warning)' }}>
-            {latestSoil.potassium} <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>/ 40 mg/kg</span>
+          <div
+            style={{
+              gridColumn: '2',
+              gridRow: '1 / span 2',
+              width: 48,
+              height: 48,
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--amber-glow)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              justifySelf: 'end',
+              fontSize: 26,
+            }}
+          >
+            ⚗️
           </div>
-          <div style={{ fontWeight: 700, marginTop: 4, marginBottom: 6 }}>Potassium (K) Level</div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+          <div style={{ gridColumn: '1', gridRow: '2' }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 30, fontWeight: 800, color: 'var(--warning)', lineHeight: 1.1 }}>
+              {latestSoil.potassium} <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>/ 40 mg/kg</span>
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginTop: 2 }}>Potassium (K) Level</div>
+          </div>
+          <div style={{ gridColumn: '1 / span 2', gridRow: '3', fontSize: 12, color: 'var(--text-secondary)', paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             {lang === 'tl'
               ? 'Mababang potassium. Kailangan ng Muriate of Potash sa linggong ito upang maging matibay ang puno ng mais.'
               : 'Low soil potassium detected. Apply Muriate of Potash (0-0-60) to strengthen stalk rigidity.'}
           </div>
         </div>
 
-        <div className="card" style={{ borderTop: '4px solid var(--info)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span className="anim-rain" style={{ fontSize: 28 }}>🌧️</span>
-            <span className="badge badge-info">ℹ️ {lang === 'tl' ? 'May Ulan sa Huwebes' : 'Rain Predicted'}</span>
+        <div
+          className="card"
+          style={{
+            borderTop: '4px solid var(--info)',
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            gridTemplateRows: 'auto auto auto',
+            gap: '6px 14px',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ gridColumn: '1', gridRow: '1', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="badge badge-info" style={{ fontSize: 11 }}>ℹ️ {lang === 'tl' ? 'May Ulan sa Huwebes' : 'Rain Predicted'}</span>
           </div>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 800, color: 'var(--info)' }}>
-            {latestWeather.temperature}°C
+          <div
+            style={{
+              gridColumn: '2',
+              gridRow: '1 / span 2',
+              width: 48,
+              height: 48,
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(59,130,246,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              justifySelf: 'end',
+            }}
+          >
+            <WeatherAnimatedIcon condition="rain" size={40} />
           </div>
-          <div style={{ fontWeight: 700, marginTop: 4, marginBottom: 6 }}>{lang === 'tl' ? 'Kasalukuyang Panahon' : 'Current Weather'}</div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+          <div style={{ gridColumn: '1', gridRow: '2' }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 30, fontWeight: 800, color: 'var(--info)', lineHeight: 1.1 }}>
+              {latestWeather.temperature}°C
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginTop: 2 }}>{lang === 'tl' ? 'Kasalukuyang Panahon' : 'Current Weather'}</div>
+          </div>
+          <div style={{ gridColumn: '1 / span 2', gridRow: '3', fontSize: 12, color: 'var(--text-secondary)', paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             {lang === 'tl'
               ? 'Katamtamang init. May 74% tsansa ng pag-ulan sa darating na 3 araw ayon sa Doppler radar.'
               : 'Moderate climate. 74% probability of localized precipitation within the next 3 days.'}

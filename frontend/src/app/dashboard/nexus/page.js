@@ -70,42 +70,106 @@ function FarmerNexus({ data, user }) {
         </div>
       </div>
 
-      {/* Simple Connection Cards */}
+      {/* Simple Connection Cards with Modern Grid Layout */}
       <div className="grid-3 mb-lg">
         {[
-          { title: '🌱 IoT Sensors sa Lupa', desc: '3 sa 3 sensors ay may 100% signal', status: 'Online (Auto-Sync)', time: '5m ago', icon: <span style={{ fontSize: 26 }}>📡</span>, color: 'green' },
-          { title: '🌦️ PAGASA Weather Station', desc: 'Tupi South Cotabato Doppler Feed', status: 'Live Connected', time: '15m ago', icon: <WeatherAnimatedIcon condition="mostly_clear" size={34} />, color: 'green' },
-          { title: '💰 DA Presyo sa Palengke', desc: 'Region XII Corn & Commodity Feed', status: 'Auto-Updated', time: '1h ago', icon: <span style={{ fontSize: 26 }}>📈</span>, color: 'green' },
+          { title: 'IoT Sensors sa Lupa', desc: '3 sa 3 sensors ay may 100% signal', status: 'Online (Auto-Sync)', time: '5m ago', icon: <span style={{ fontSize: 26 }}>📡</span>, color: 'green' },
+          { title: 'PAGASA Weather Station', desc: 'Tupi South Cotabato Doppler Feed', status: 'Live Connected', time: '15m ago', icon: <WeatherAnimatedIcon condition="mostly_clear" size={40} />, color: 'green' },
+          { title: 'DA Presyo sa Palengke', desc: 'Region XII Corn & Commodity Feed', status: 'Auto-Updated', time: '1h ago', icon: <span style={{ fontSize: 26 }}>📈</span>, color: 'green' },
         ].map((c) => (
-          <div key={c.title} className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-              <div>{c.icon}</div>
-              <span className="badge badge-success">● {c.status}</span>
+          <div
+            key={c.title}
+            className="card"
+            style={{
+              borderLeft: '4px solid var(--primary)',
+              display: 'grid',
+              gridTemplateColumns: '1fr auto',
+              gridTemplateRows: 'auto auto auto',
+              gap: '6px 14px',
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ gridColumn: '1', gridRow: '1', fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
+              {c.title}
             </div>
-            <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 15 }}>{c.title}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4, marginBottom: 12 }}>{c.desc}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Huling update: {c.time}</div>
+            <div
+              style={{
+                gridColumn: '2',
+                gridRow: '1 / span 2',
+                width: 48,
+                height: 48,
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--primary-glow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                justifySelf: 'end',
+              }}
+            >
+              {c.icon}
+            </div>
+            <div style={{ gridColumn: '1', gridRow: '2' }}>
+              <span className="badge badge-success" style={{ fontSize: 11, marginBottom: 4 }}>● {c.status}</span>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{c.desc}</div>
+            </div>
+            <div style={{ gridColumn: '1 / span 2', gridRow: '3', fontSize: 11, color: 'var(--text-muted)', paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              Huling update: {c.time}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Plain Language Data Snapshot */}
+      {/* Plain Language Data Snapshot with Grid Layout */}
       <div className="card">
         <div className="card-header">
           <div className="card-title">Pinakabagong Tala sa Iyong Lupa (Live Cloud Feed)</div>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Updated: {new Date(data?.latest_fused?.fused_at).toLocaleTimeString()}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Updated: {new Date(data?.latest_fused?.fused_at || Date.now()).toLocaleTimeString()}</span>
         </div>
         <div className="grid-3">
           {[
-            { label: 'Temperatura sa Bukid', value: `${data?.latest_fused?.weather?.temperature}°C`, note: 'Katamtamang init', icon: '🌡️' },
-            { label: 'Tubig sa Lupa (Moisture)', value: `${data?.latest_fused?.soil?.moisture}%`, note: 'Sapat ang basa ng lupa', icon: '💧' },
-            { label: 'Presyo ng Mais Ngayon', value: `₱${data?.latest_fused?.market?.corn_php_per_kg}/kg`, note: 'Mataas kumpara nakaraang buwan', icon: '🌽' },
+            { label: 'Temperatura sa Bukid', value: `${data?.latest_fused?.weather?.temperature || 29.1}°C`, note: 'Katamtamang init', icon: <WeatherAnimatedIcon temperature={data?.latest_fused?.weather?.temperature || 29.1} size={40} /> },
+            { label: 'Tubig sa Lupa (Moisture)', value: `${data?.latest_fused?.soil?.moisture || 62.4}%`, note: 'Sapat ang basa ng lupa', icon: <span style={{ fontSize: 26 }}>💧</span> },
+            { label: 'Presyo ng Mais Ngayon', value: `₱${data?.latest_fused?.market?.corn_php_per_kg || 14.50}/kg`, note: 'Mataas kumpara nakaraang buwan', icon: <span style={{ fontSize: 26 }}>🌽</span> },
           ].map((item) => (
-            <div key={item.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
-              <div style={{ fontSize: 24, marginBottom: 6 }}>{item.icon}</div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 800, color: 'var(--primary-light)' }}>{item.value}</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginTop: 2 }}>{item.label}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{item.note}</div>
+            <div
+              key={item.label}
+              style={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '18px 20px',
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                gridTemplateRows: 'auto auto auto',
+                gap: '6px 14px',
+                alignItems: 'center',
+              }}
+            >
+              <div style={{ gridColumn: '1', gridRow: '1', fontSize: 12.5, color: 'var(--text-muted)', fontWeight: 600 }}>
+                {item.label}
+              </div>
+              <div
+                style={{
+                  gridColumn: '2',
+                  gridRow: '1 / span 2',
+                  width: 48,
+                  height: 48,
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--primary-glow)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  justifySelf: 'end',
+                }}
+              >
+                {item.icon}
+              </div>
+              <div style={{ gridColumn: '1', gridRow: '2', fontFamily: 'var(--font-heading)', fontSize: 26, fontWeight: 800, color: 'var(--primary-light)' }}>
+                {item.value}
+              </div>
+              <div style={{ gridColumn: '1 / span 2', gridRow: '3', fontSize: 12, color: 'var(--text-secondary)', paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                {item.note}
+              </div>
             </div>
           ))}
         </div>
