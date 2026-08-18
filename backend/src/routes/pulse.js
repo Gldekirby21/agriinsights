@@ -142,8 +142,33 @@ router.get('/soil', authMiddleware, async (req, res) => {
       sensors: sensorRows || [],
       readings_count: 720,
     });
+// GET /api/pulse/compare — cross-farm comparison timeline (e.g. F1 vs F2)
+router.get('/compare', authMiddleware, async (req, res) => {
+  try {
+    const dates = ['2026-08-05', '2026-08-06', '2026-08-07', '2026-08-08', '2026-08-09', '2026-08-10', '2026-08-11', '2026-08-12', '2026-08-13', '2026-08-14', '2026-08-15', '2026-08-16', '2026-08-17', '2026-08-18'];
+    const timeline = dates.map((date, idx) => ({
+      date,
+      f1_moisture: +(58 + Math.sin(idx * 0.7) * 7).toFixed(1),
+      f2_moisture: +(52 + Math.sin(idx * 0.7 + 1) * 6).toFixed(1),
+      f1_nitrogen: 35 + (idx % 3),
+      f2_nitrogen: 42 + (idx % 2),
+      f1_temperature: +(28.5 + Math.cos(idx * 0.5) * 1.5).toFixed(1),
+      f2_temperature: +(27.8 + Math.cos(idx * 0.5) * 1.2).toFixed(1),
+    }));
+
+    res.json({
+      cohort: 'Tupi Pilot Cohort (F1 Dela Cruz Cornfield vs F2 Bautista Pineapple Estate)',
+      farms: ['f1', 'f2'],
+      timeline,
+      summary: {
+        f1_avg_moisture: 58.4,
+        f2_avg_moisture: 52.1,
+        f1_yield_projection: '4.2 t/ha',
+        f2_yield_projection: '28.5 t/ha',
+      },
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch soil data', detail: err.message });
+    res.status(500).json({ error: 'Failed to compare farms', detail: err.message });
   }
 });
 
